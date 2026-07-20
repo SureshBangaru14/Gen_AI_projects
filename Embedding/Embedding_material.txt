@@ -1,0 +1,1027 @@
+########################################################################################################
+
+
+What is Similarity :
+
+	- Similarity means measuring how much two things are alike.
+
+	- In AI and data science, similarity is used to compare:
+
+		Words
+		Sentences
+		Images
+		Documents
+		Products
+
+	- Instead of exact matching, similarity helps us understand meaning and closeness.
+	
+	
+	
+Simple Definition : 
+
+	- Similarity = a score that tells how close two items are in meaning or structure.
+
+	Example:
+
+		- “car” and “automobile” → very similar
+		- “car” and “banana” → not similar
+	
+	
+Types Of Similarity :
+
+
+	1. 📐 Cosine Similarity (Most popular in AI) :
+	
+		- Measures angle between two vectors
+		- Ignores size, focuses on direction
+		- Used in embeddings and NLP
+
+		✔ Best for:
+
+			- Text similarity
+			- Chatbots
+			- Search engines
+
+		Example:
+
+			- “AI is smart” ↔ “Artificial intelligence is intelligent” → high similarity
+			
+			
+			
+		⭐ Types of Cosine Similarity
+
+			- Cosine similarity values range from -1 to 1
+
+			🟢 1. Positive Similarity (0 to 1) : 
+			
+				Means vectors are similar
+				Higher value = more similarity
+
+				Examples:
+
+					“car” ↔ “automobile” → 0.8 to 1.0
+					“dog” ↔ “puppy” → high similarity
+
+					👉 Interpretation:
+					✔ Same or related meaning
+					✔ Used in search and recommendation
+
+			⚪ 2. Zero Similarity (0) : 
+			
+				Means vectors are unrelated
+				They are perpendicular (90° angle)
+
+				Examples:
+
+					“pizza” ↔ “computer”
+					“cat” ↔ “finance”
+
+					👉 Interpretation:
+					❌ No relationship in meaning
+
+
+			🔴 3. Negative Similarity (-1 to 0) :
+			
+				Means vectors are opposite in meaning
+				Rare in real NLP embeddings, but possible in theory
+
+				Examples:
+
+					“hot” ↔ “cold”
+					“increase” ↔ “decrease”
+
+					👉 Interpretation:
+					⚠ Opposite concepts
+
+
+	2. 📏 Euclidean Similarity (Distance-based) :
+	
+		- Measures straight-line distance between points
+		- Smaller distance = more similar
+
+		✔ Best for:
+
+			- Image recognition
+			- Clustering data
+
+		Example:
+
+			- Two similar images have smaller distance
+			
+			
+			
+			
+			
+	3. 📊 Jaccard Similarity :
+	
+		Compares overlap between two sets
+		Formula: intersection / union
+
+		✔ Best for:
+
+			Recommendation systems
+			Keyword matching
+
+			Example:
+
+			Set A = {apple, banana}
+			Set B = {banana, mango}
+			→ similarity based on common items
+			
+		
+	
+	4. 🔤 Edit (Levenshtein) Similarity :
+	
+		Measures how many changes needed to convert one word into another
+
+		✔ Best for:
+
+			Spell check
+			Typo correction
+
+			Example:
+
+			“kitten” → “sitting” (few edits needed)
+
+
+	5. 🧠 Semantic Similarity (AI-based) :
+	
+		Understands meaning, not just words
+		Uses embeddings
+
+		✔ Best for:
+
+		ChatGPT-like systems
+		Semantic search
+
+		Example:
+
+		“I feel happy” ↔ “I am joyful” → similar meaning
+		
+
+
+	Simple Way to Remember :
+	
+		Cosine → meaning-based text search
+		Euclidean → physical distance (images/face)
+		Jaccard → set overlap (likes/items)
+		Edit → spelling correction
+		Semantic → deep understanding like humans
+		
+		
+		+-------------------------------------+----------------------+
+		| Data Type                           | Preferred Measure    |
+		+-------------------------------------+----------------------+
+		| Text embeddings                     | Cosine Similarity    |
+		| Physical coordinates / image vectors| Euclidean Distance   |
+		| Sets of items                       | Jaccard Similarity   |
+		| Strings with typos                  | Edit Distance        |
+		| Natural language meaning            | Semantic Similarity  |
+		+-------------------------------------+----------------------+
+		
+		
++----------------------------+---------------------------------------------------------+-----------------------------------------------+--------------------------------------------------------------+
+| Similarity / Distance      | What It Measures                                        | Typical Use Case                                  | Example Projects                                             |
++----------------------------+---------------------------------------------------------+--------------------------------------------------+-------------------------------------------------------------+
+| Cosine Similarity          | Measures the angle between vectors                      | Semantic text search, document similarity,        | Resume–job matching, FAQ search engine, document retrieval, |
+|                            | (ignores magnitude)                                     | recommendation systems                            | plagiarism detection                                         |
++----------------------------+---------------------------------------------------------+--------------------------------------------------+-------------------------------------------------------------+
+| Euclidean Distance         | Measures straight-line distance between points          | Image recognition, face recognition, clustering,  | Face unlock system, image similarity app, customer          |
+|                            | in space                                                | anomaly detection                                 | segmentation with K-Means                                    |
++----------------------------+---------------------------------------------------------+--------------------------------------------------+--------------------------------------------------------------+
+| Jaccard Similarity         | Measures overlap between two sets                       | Recommendation systems, tag matching,             | Movie recommendation system, friend suggestion engine,      |
+|                            |                                                         | user-interest comparison                          | product recommendation based on purchases                    |
++----------------------------+---------------------------------------------------------+--------------------------------------------------+--------------------------------------------------------------
+| Edit Distance              | Counts minimum character insertions, deletions,         | Spell checking, fuzzy search, typo correction     | Autocorrect keyboard, search-as-you-type, name matching     |
+| (Levenshtein Distance)     | and substitutions                                       |                                                   | in databases                                                 |
++----------------------------+---------------------------------------------------------+--------------------------------------------------+--------------------------------------------------------------+
+| Semantic Similarity        | Measures conceptual meaning using embeddings            | AI search, chatbots, question answering,          | ChatGPT-style chatbot, semantic search engine, customer     |
+|                            | or language models                                      | RAG systems                                       | support assistant, knowledge-base retrieval                  |
++----------------------------+---------------------------------------------------------+--------------------------------------------------+-------------------------------------------------------------+
+
+
+
+
+
++-------------------------------------------------------------+---------------------------------------------+
+| Project                                                     | Best Similarity Measure                     |
++-------------------------------------------------------------+---------------------------------------------+
+| Google-like document search                                 | Cosine Similarity                           |
+| Face recognition attendance system                          | Euclidean Distance                          |
+| Netflix/Amazon recommendations                              | Jaccard Similarity (or Cosine for advanced) |
+| Spell checker                                               | Edit Distance                               |
+| AI-powered Q&A chatbot                                      | Semantic Similarity                         |
+| Resume screening system                                     | Cosine Similarity + Semantic Similarity     |
+| Duplicate image detector                                    | Euclidean Distance                          |
+| Friend recommendation in social media                       | Jaccard Similarity                          |
+| Customer support knowledge search                           | Semantic Similarity                         |
+| Product search by meaning ("cheap laptop" ≈ "budget notebook") | Semantic Similarity                      |
++-------------------------------------------------------------+---------------------------------------------+
+
+
+
+
+
+
+
+
+
+
+#############################################################################################################
+
+What is Embedding : 
+
+	- Embedding is a way to convert words, sentences, images, or data into numbers (vectors) so that a computer can understand their meaning.
+
+	- Instead of reading text like humans do, machines understand numbers, so embeddings translate meaning into a mathematical form.
+
+	- An embedding is a numerical representation of data (like text) in a high-dimensional vector space, where similar meanings are placed closer together.
+
+	For example:
+
+		“king” → a list of numbers like [0.12, -0.44, 0.98, ...]
+		“queen” → a very similar list of numbers
+		“apple” → a very different list of numbers
+
+		So the model understands:
+
+			👉 king and queen are related
+			👉 apple is unrelated
+
+Real Time Used List :
+
+
+	Frequency-Based / Count-Based
+	
+		One-Hot Encoding
+		Bag of Words (BoW)
+		Count Vectorizer
+		TF-IDF
+		N-Gram Vectorization
+		Co-occurrence Matrix
+
+	Prediction-Based / Static Embeddings
+	
+		Word2Vec (CBOW)
+		Word2Vec (Skip-Gram)
+		GloVe
+		FastText
+		Doc2Vec
+		
+	Transformer-Based Embeddings (Widely Used)
+	
+		ELMo (mostly research/legacy)
+		BERT
+		RoBERTa
+		ALBERT
+		DistilBERT
+		DeBERTa
+		ELECTRA
+		
+	Sentence Embeddings (Very Popular)
+	
+		Sentence-BERT (SBERT)
+		Universal Sentence Encoder (USE)
+		
+	Modern LLM & RAG Embeddings (Most Used Today)
+	
+		OpenAI Embeddings
+		E5 Embeddings
+		BGE Embeddings
+		GPT-based Embeddings
+		
+		
+		
+		
+		
+================================================================================
+EMBEDDINGS CHEAT SHEET
+================================================================================
+
+Embedding Type     | Real-Time Use              | Popular Model         | Similarity Measure
+-------------------|----------------------------|-----------------------|--------------------
+Word Embedding     | NLP tasks                  | BERT, T5             | Cosine Similarity
+Sentence Embedding | Chatbots, FAQ search       | OpenAI, Cohere       | Cosine Similarity
+Document Embedding | PDF search                 | OpenAI, Gemini       | Cosine Similarity
+Text Embedding     | RAG, vector search         | OpenAI, Gemini       | Cosine Similarity
+Image Embedding    | Image search               | CLIP                 | Euclidean/Cosine
+Audio Embedding    | Voice recognition          | Whisper-based models | Cosine Similarity
+User Embedding     | Recommendations            | Custom Models        | Jaccard/Cosine
+Product Embedding  | E-commerce                 | OpenAI, Cohere       | Cosine Similarity
+
+================================================================================
+QUICK MEMORY MAP
+================================================================================
+
+Word Embedding      → Single words → NLP
+Sentence Embedding  → Chatbots & FAQs
+Document Embedding  → PDFs & Reports
+Text Embedding      → RAG & Vector Search
+Image Embedding     → Reverse Image Search
+Audio Embedding     → Voice Recognition
+User Embedding      → User Preferences
+Product Embedding   → Product Recommendations
+
+================================================================================
+REAL-WORLD PROJECT MAPPING
+================================================================================
+
+Project                                   → Embedding Type      → Similarity
+-----------------------------------------------------------------------------
+Google-like document search               → Text Embedding      → Cosine
+Chatbot / FAQ Assistant                   → Sentence Embedding  → Cosine
+PDF Search System                         → Document Embedding  → Cosine
+RAG Application                           → Text Embedding      → Cosine
+Image Search Engine                       → Image Embedding     → Euclidean/Cosine
+Voice Recognition System                  → Audio Embedding     → Cosine
+Netflix/Amazon Recommendations            → User Embedding      → Jaccard/Cosine
+E-commerce Product Recommendations        → Product Embedding   → Cosine
+
+================================================================================
+END-TO-END AI SEARCH STACK
+================================================================================
+
+Data
+  ↓
+Embedding Model (OpenAI / Gemini / Cohere / BERT / CLIP)
+  ↓
+Embedding Vector
+  ↓
+Similarity Search (Cosine / Euclidean / Jaccard)
+  ↓
+Top Matching Results
+  ↓
+Application (Chatbot, RAG, Search, Recommendation)
+
+Example:
+Question
+  ↓
+Text Embedding (OpenAI/Gemini)
+  ↓
+Vector Database
+  ↓
+Cosine Similarity Search
+  ↓
+Relevant Documents
+  ↓
+LLM Response
+================================================================================
+
+
+
+
+================================================================================
+END-TO-END RAG PROJECT (DATA EXTRACTION FROM IMAGES)
+================================================================================
+
+1. Upload Image
+   ↓
+2. OCR Extracts Text
+   (Tesseract / EasyOCR / PaddleOCR)
+   ↓
+3. Text Cleaning
+   - Remove noise
+   - Fix OCR errors
+   - Normalize text
+   ↓
+4. Chunking
+   - Split text into smaller chunks
+   ↓
+5. Generate Embeddings
+   (OpenAI / Gemini / Cohere Embeddings)
+   ↓
+6. Store Embeddings
+   (FAISS / ChromaDB / Pinecone)
+   ↓
+7. User Asks Question
+   Example:
+   "What is the invoice amount?"
+   ↓
+8. Query Embedding
+   Convert question into vector
+   ↓
+9. Similarity Search
+   (Cosine Similarity)
+   ↓
+10. Retrieve Relevant Chunks
+   ↓
+11. Send Context + Question to LLM
+   (GPT / Gemini / Claude)
+   ↓
+12. Generate Final Answer
+   ↓
+13. Display Response
+
+================================================================================
+EXAMPLE
+================================================================================
+
+Invoice Image
+   ↓
+OCR
+
+Invoice No: INV-101
+Date: 10-06-2026
+Customer: ABC Ltd
+Amount: ₹15,000
+
+   ↓
+Chunking
+   ↓
+Embeddings
+   ↓
+Vector DB
+
+User Query:
+"What is the invoice amount?"
+
+   ↓
+Query Embedding
+   ↓
+Cosine Similarity Search
+   ↓
+Retrieved Chunk:
+"Amount: ₹15,000"
+
+   ↓
+LLM
+
+Answer:
+"The invoice amount is ₹15,000."
+
+================================================================================
+TECH STACK
+================================================================================
+
+OCR          → EasyOCR / PaddleOCR
+Chunking     → LangChain
+Embeddings   → OpenAI / Gemini / Cohere
+Vector DB    → FAISS / ChromaDB / Pinecone
+LLM          → GPT / Gemini / Claude
+Backend      → Python / FastAPI
+Frontend     → Streamlit / React
+
+================================================================================
+ONE-LINE INTERVIEW ANSWER
+================================================================================
+
+Image → OCR → Text → Chunking → Embeddings → Vector DB →
+User Query → Query Embedding → Cosine Similarity Search →
+Retrieve Context → LLM → Answer
+================================================================================
+
+
+#########################################################################################################
+
+Word2Vec :
+
+	- Word2Vec is a technique used to convert words into numerical vectors so that machines can understand word meaning based on context.
+	
+	- Previous techniques (like One-Hot Encoding, Bag of Words, TF-IDF) do not capture semantic relationships or contextual meaning between words; they only capture frequency-based or occurrence-based information, whereas Word2Vec learns word meanings from context and represents words as dense vectors where semantically similar words are placed closer together.
+	
+	- 
+	
+	What Word2Vec Does and It learns : 
+
+		Words that appear in similar contexts → get similar vectors
+
+		So:
+
+		“king” ≈ “queen”
+		“car” ≈ “vehicle”
+		“doctor” ≈ “nurse”
+		
+		Ex :
+		
+		
+			1. Previous Techniques (BoW / TF-IDF)
+			
+				Sentence 1:
+
+				“I love car”
+
+				Sentence 2:
+
+				“I love vehicle”
+
+				Bag of Words representation:
+				
+				car     → 1
+				vehicle → 1
+				love    → 1
+				I       → 1
+				
+				Problem:
+				
+					“car” and “vehicle” are treated as completely different words
+					Model does NOT understand they mean similar things
+
+					👉 So similarity = ❌ NOT detected
+
+
+			2. Word2Vec
+
+				Now Word2Vec looks at context:
+
+				Training sentences:
+				
+					I drive a car
+					I drive a vehicle
+					
+				Learned vectors (example idea) :
+				
+				car     → [0.21, 0.88, ...]
+				vehicle → [0.20, 0.85, ...]
+				
+				Result:
+				
+					“car” and “vehicle” appear in similar contexts (“drive”)
+					So their vectors become close to each other
+
+					👉 Similarity = ✅ DETECTED
+					
+					
+			⚡ One-line conclusion:
+
+				👉 Traditional methods treat words independently, while Word2Vec understands meaning by learning from surrounding words, making similar words like “car” and “vehicle” 	 closer in vector space.
+				
+				
+	Word2Vec has two main types based on how it learns word relationships :
+	
+				1. CBOW (Continuous Bag of Words)
+				2. Skip-gram
+				
+				
+				
+				🔹 1. CBOW (Continuous Bag of Words)
+				
+					👉 Idea:
+
+						- Predict the center word using surrounding context words
+
+					📌 Example:
+					
+						Context: "I love ___ in the morning"
+						Target:  "coffee"
+					
+					🧠 How it works:
+					
+						Input = surrounding words
+						Output = missing word
+						
+					✅ Best for:
+					
+						- Small datasets
+						- Faster training
+						
+						
+				🔹 2. Skip-gram
+				
+					👉 Idea:
+
+						- Predict the context words using the center word
+
+					📌 Example:
+					
+						Input: "coffee"
+						Output: "I", "love", "in", "the", "morning"
+						
+					🧠 How it works:
+					
+						Input = one word
+						Output = surrounding words
+						
+					✅ Best for:
+					
+						Large datasets
+						Better for rare words
+						
+						
+				⚡ One-line summary : 
+
+					👉 Word2Vec has two types: CBOW (predict word from context) and Skip-gram (predict context from word), both used to learn word embeddings from text.
+															
+															
+	🔷 Word2Vec Code Flow :											
+	
+			1. Collect Text Data
+			   (corpus / sentences)
+
+				↓
+
+			2. Text Preprocessing
+			   - Lowercase
+			   - Remove punctuation
+			   - Tokenization
+
+				↓
+
+			3. Build Vocabulary
+			   - Assign index to each word
+
+				↓
+
+			4. Generate Training Data
+			   CBOW → (context → target)
+			   Skip-gram → (target → context)
+
+				↓
+
+			5. Train Word2Vec Model
+			   (Neural Network learns embeddings)
+
+				↓
+
+			6. Get Word Vectors
+			   Example:
+			   "king" → [0.25, 0.88, ...]
+
+				↓
+
+			7. Similarity Calculation
+			   - Cosine similarity
+			   - Find similar words
+
+				↓
+
+			8. Downstream Applications
+			   - Search
+			   - Recommendation
+			   - Clustering															
+							
+							
+Transformer Hugging Face Models:
+
+		- bert-base-uncased is a different type of model compared to all-MiniLM-L6-v2.
+
+		- all-MiniLM-L6-v2 → optimized sentence embedding model (for semantic search/RAG)
+		- bert-base-uncased → original BERT language understanding model (for NLP tasks like classification, QA, token representations)
+		
+		
+		| Model               | Vector size | Designed for              |
+		| ------------------- | ----------- | ------------------------- |
+		| `all-MiniLM-L6-v2`  | 384         | Semantic search / RAG     |
+		| `bert-base-uncased` | 768         | General NLP understanding |
+
+
+all-MiniLM-L6-v2 : 
+
+	
+	- all-MiniLM-L6-v2 is a sentence embedding model, not a text generation model like GPT. 
+	   Its job is to convert text (sentences or short paragraphs) into numerical vectors (embeddings) that capture the semantic meaning of the text.
+
+        - Breaking down the name:
+        
+		all – Trained on many different datasets, making it useful for general-purpose text understanding.
+		MiniLM – A lightweight Transformer architecture that is much smaller and faster than models like BERT while retaining good performance.
+		L6 – The model has 6 Transformer layers ("L6" = Layer 6).
+		v2 – The second improved version of the model.
+
+
+	Typical use cases :
+
+		This model is widely used for :
+
+			🔍 Semantic search
+			📄 Document retrieval
+			🤖 Retrieval-Augmented Generation (RAG)
+			📚 FAQ matching
+			💬 Chatbot knowledge retrieval
+			🏷️ Text clustering
+			🔖 Duplicate detection
+			📝 Recommendation systems	
+	
+	
+	For example, in a RAG system :
+	
+		
+		
+		                Documents
+				    │
+				      ▼
+			all-MiniLM-L6-v2
+				    │
+				      ▼
+			  Document Embeddings
+				    │
+				      ▼
+			     FAISS Index
+				      ▲
+				    │
+		User Question ──────┘
+		      │
+		         ▼
+		all-MiniLM-L6-v2
+		      │
+		         ▼
+		Query Embedding
+		      │
+		         ▼
+		FAISS Similarity Search
+		      │
+		         ▼
+		Top-k Documents
+		      │
+		         ▼
+		Create Prompt
+
+		Context:
+			- Doc 1
+			- Doc 2
+			- Doc 3
+
+		Question:
+			...
+			      │
+			         ▼
+			     GPT
+			      │
+			         ▼
+			Final Answer	
+			
+			
+	Example Code as per flow : 
+	
+	
+		# ==========================================
+		# Simple RAG using:
+		# all-MiniLM-L6-v2 + FAISS + GPT
+		# ==========================================
+
+
+		# STEP 1: Import libraries
+		from sentence_transformers import SentenceTransformer
+		import faiss
+		import numpy as np
+		from openai import OpenAI
+
+
+		# ==========================================
+		# STEP 2: Load Embedding Model
+		# ==========================================
+
+		print("Loading embedding model...")
+
+		embedding_model = SentenceTransformer(
+		    "sentence-transformers/all-MiniLM-L6-v2"
+		)
+
+
+		# ==========================================
+		# STEP 3: Create Knowledge Base Documents
+		# ==========================================
+
+		documents = [
+		    "Python is a popular programming language used for AI and web development.",
+		    
+		    "Machine Learning is a field of Artificial Intelligence where computers learn from data.",
+		    
+		    "FAISS is a vector database library created for fast similarity search.",
+		    
+		    "all-MiniLM-L6-v2 converts text into 384 dimensional embeddings.",
+		    
+		    "RAG means Retrieval Augmented Generation where documents are retrieved before answering."
+		]
+
+
+		# ==========================================
+		# STEP 4: Convert Documents to Embeddings
+		# ==========================================
+
+		print("Creating document embeddings...")
+
+		document_vectors = embedding_model.encode(
+		    documents
+		)
+
+
+		print("Embedding shape:")
+		print(document_vectors.shape)
+
+
+		# ==========================================
+		# STEP 5: Create Vector Database
+		# (FAISS)
+		# ==========================================
+
+
+		dimension = 384
+
+
+		vector_db = faiss.IndexFlatL2(
+		    dimension
+		)
+
+
+		vector_db.add(
+		    np.array(document_vectors)
+		    .astype("float32")
+		)
+
+
+		print(
+		    "Documents stored:",
+		    vector_db.ntotal
+		)
+
+
+
+		# ==========================================
+		# STEP 6: User Question
+		# ==========================================
+
+		question = input(
+		    "\nAsk question: "
+		)
+
+
+
+		# ==========================================
+		# STEP 7: Convert Question into Vector
+		# ==========================================
+
+
+		query_vector = embedding_model.encode(
+		    [question]
+		)
+
+
+
+		# ==========================================
+		# STEP 8: Search Similar Documents
+		# ==========================================
+
+
+		top_k = 3
+
+
+		distance, indexes = vector_db.search(
+		    np.array(query_vector)
+		    .astype("float32"),
+		    top_k
+		)
+
+
+
+		# Get matching documents
+
+		results = []
+
+
+		for i in indexes[0]:
+		    results.append(
+			documents[i]
+		    )
+
+
+		print("\nRetrieved Documents:")
+		for doc in results:
+		    print("-", doc)
+
+
+
+		# ==========================================
+		# STEP 9: Create Prompt for LLM
+		# ==========================================
+
+
+		context = "\n".join(results)
+
+
+		prompt = f"""
+
+		Use the context below to answer the question.
+
+		Context:
+		{context}
+
+
+		Question:
+		{question}
+
+		Answer:
+		"""
+
+
+
+		# ==========================================
+		# STEP 10: Send to GPT
+		# ==========================================
+
+
+		client = OpenAI(
+		    api_key="YOUR_OPENAI_API_KEY"
+		)
+
+
+
+		response = client.chat.completions.create(
+
+		    model="gpt-4.1",
+
+		    messages=[
+			{
+			    "role":"user",
+			    "content":prompt
+			}
+		    ]
+
+		)
+
+
+
+		# ==========================================
+		# STEP 11: Final Answer
+		# ==========================================
+
+
+		answer = response.choices[0].message.content
+
+
+		print("\nFinal Answer:")
+		print(answer)		
+		
+		
+bert-base-uncased :
+
+
+	- bert-base-uncased is a Transformer-based language understanding model, not a text generation model like GPT. 
+	  Its job is to understand the meaning and context of text by converting words into numerical representations (embeddings/hidden states) that capture language patterns.
+	  
+	- It is mainly used for tasks like text classification, question answering, named entity recognition, and feature extraction.	
+	
+
+	Breaking down the name :
+	
+		BERT : 
+		
+			- Stands for Bidirectional Encoder Representations from Transformers.
+			- Created by Google.
+			- Uses the Transformer encoder architecture.
+			- "Bidirectional" means it reads text by looking at both left and right context.	
+			
+			
+
+OpenAI embedding models :
+
+			- OpenAI embedding models convert text (or other supported inputs) into vectors (lists of numbers) that capture meaning. 
+			  These vectors are used for things like semantic search, RAG (retrieval-augmented generation), clustering, recommendations, and similarity matching.	
+			  
+			  
+			  
+			  Common uses:
+
+					Semantic search :
+					
+						- Find documents by meaning, not exact keywords.
+						
+					RAG systems :
+					
+						- Store document embeddings in a vector database like Pinecone, FAISS, or Chroma and retrieve relevant chunks before generating answers.
+					
+					Document similarity :
+					
+						- Compare articles, support tickets, or messages.
+						
+					Recommendation systems :
+					
+						- Match users/items based on meaning.
+						
+					Clustering :
+					
+						- Group similar text automatically.
+						
+						
+						
+
+
+			text-embedding-ada-002 :
+			
+			     Status: Legacy / older generation
+			     Vector size: 1536 dimensions
+			     Use today & Applications:
+			     Used mainly for existing systems and migration projects. Applications include semantic search, document similarity, RAG, clustering, recommendations, 
+                             and text classification.
+
+
+			text-embedding-3-small :
+			
+			
+			     Status: Current recommended default
+			     Vector size: 1536 dimensions (default, can reduce)
+			     Use today & Applications:
+			     Best for new applications requiring low cost and good quality. Applications include chatbot search, RAG systems, knowledge bases, FAQ search, content matching,
+                             and recommendation systems.
+
+
+			text-embedding-3-large :
+			
+			     Status: Current highest-quality embedding model
+			     Vector size: 3072 dimensions (default, can reduce)
+			     Use today & Applications:
+			     Used when retrieval accuracy is important. Applications include enterprise search, legal document search, research databases, large knowledge bases,
+                             and advanced RAG systems.
+
+
+
+

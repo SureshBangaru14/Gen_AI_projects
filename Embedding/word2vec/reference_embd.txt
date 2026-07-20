@@ -1,0 +1,62 @@
+#***********************************************************************************************#
+
+
+Frequency-Based / Count-Based :
+
+	One-Hot Encoding
+	Bag of Words (BoW)
+	Count Vectorizer
+	TF-IDF
+	N-Gram Vectorization
+	Co-occurrence Matrix
+	PPMI (Positive Pointwise Mutual Information)
+	LSA (Latent Semantic Analysis)
+	LSI (Latent Semantic Indexing)
+	Hashing Vectorizer
+	
+	
+Prediction-Based / Static Embeddings : 
+
+	Word2Vec (CBOW)
+	Word2Vec (Skip-Gram)
+	GloVe
+	FastText
+	Doc2Vec
+	
+	
+Contextual Embeddings : 
+
+	ELMo
+	BERT
+	RoBERTa
+	ALBERT
+	DistilBERT
+	XLNet
+	ELECTRA
+	DeBERTa
+	
+	
+Sentence & Document Embeddings : 
+
+	Sentence-BERT (SBERT)
+	Universal Sentence Encoder (USE)
+	InferSent
+	LASER
+	
+	
+Modern LLM Embeddings (Current Industry Use) :
+
+	OpenAI Embeddings
+	E5 Embeddings
+	BGE Embeddings
+	T5 Embeddings
+	GPT-based Embeddings
+	Gemini Embeddings
+	Cohere Embeddings
+	
+#*****************************************************************************************************#
+
+
+
+
+
