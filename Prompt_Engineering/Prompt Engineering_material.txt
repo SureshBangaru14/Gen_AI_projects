@@ -1,0 +1,50 @@
+What is Prompt Engineering?
+
+	- Prompt Engineering is the practice of designing, refining, and structuring instructions (called prompts) given to an AI model so that it produces more accurate, useful, and reliable outputs.
+
+	- A prompt is the input or instruction you give to an AI system, such as ChatGPT, to get a desired response.
+
+	Example:
+
+		Basic prompt :
+
+			- Explain climate change.
+
+		Engineered prompt :
+
+			- Explain climate change to a 10-year-old student using simple language, three examples, and a short summary.
+
+		The second prompt gives the AI more context, constraints, and expectations, so the output is usually better.	 
+		
+		
+Core Concept of Prompt Engineering : 
+
+	- The main idea is:
+
+		- Better instructions → Better AI responses
+
+	- AI models do not "think" like humans; they generate responses based on patterns learned from data. A well-designed prompt helps guide the model toward the intended result.
+
+	Prompt engineering involves understanding :
+
+		- What information the AI needs
+		- How to describe the task clearly
+		- What format the answer should follow
+		- What limitations or rules should be applied
+		
+		
+ChatGPT API : 
+
+
+	- So in the context of chat-based AI APIs, the two fundamental parameters are:
+
+		- Model → Which AI model to use
+		- Messages → What conversation/instructions to send to the model
+		
+		
+|  Role       |       Purpose                                    |
+| ----------- | ------------------------------------------------ |
+| `system`    | Sets behavior, rules, or instructions for the AI |
+| `user`      | Contains the user's request                      |
+| `assistant` | Contains previous AI responses                   |
+
