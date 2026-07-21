@@ -26,6 +26,8 @@ from app.matcher import ResumeJDMatcher
 
 load_dotenv("/home/suresh/Gen_AI_Practice/.env")
 
+print(load_dotenv("/home/suresh/Gen_AI_Practice/.env"))
+print(os.getenv("OPENAI_API_KEY"))
 
 app = FastAPI()
 
@@ -62,32 +64,21 @@ semaphore = asyncio.Semaphore(
 # ---------------------------------
 
 def get_api_key(api_key):
-
+    print("api_key from request:", repr(api_key))
 
     if api_key:
-
         return api_key
 
-
-
     env_key = os.getenv("OPENAI_API_KEY")
-
+    print("env_key:", repr(env_key))
 
     if env_key:
-
         return env_key
 
-
-
     raise HTTPException(
-
         status_code=400,
-
         detail="OpenAI API key missing"
-
     )
-
-
 
 # ---------------------------------
 # Read PDF
