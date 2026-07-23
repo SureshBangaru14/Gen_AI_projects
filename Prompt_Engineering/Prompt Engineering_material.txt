@@ -2,7 +2,9 @@ What is Prompt Engineering?
 
 	- Prompt Engineering is the practice of designing, refining, and structuring instructions (called prompts) given to an AI model so that it produces more accurate, useful, and reliable outputs.
 
-	- A prompt is the input or instruction you give to an AI system, such as ChatGPT, to get a desired response.
+	- A prompt is the input, question, or instruction provided to an AI system (such as ChatGPT) to generate a desired response.
+	
+	- Prompt engineering is the process of designing and improving instructions (prompts) given to AI models like GPT, Claude, Gemini, or Llama to get accurate, useful, and reliable outputs.
 
 	Example:
 
@@ -47,4 +49,52 @@ ChatGPT API :
 | `system`    | Sets behavior, rules, or instructions for the AI |
 | `user`      | Contains the user's request                      |
 | `assistant` | Contains previous AI responses                   |
+
+
+
+Key Elements of a Good Prompt
+
+	- A strong prompt usually includes:
+
+	1. Role :
+
+		- Defines who the AI should act as.
+
+		Example:
+
+			- "Act as a professional financial advisor."
+
+	2. Task :
+
+		- Explains what needs to be done.
+
+		Example:
+
+			- "Create a monthly budget plan."
+
+	3. Context :
+
+		- Provides background information.
+
+		Example:
+
+			- "The user earns ₹50,000 per month and wants to save for a house."
+
+	4. Constraints :
+
+		- Defines limitations or requirements.
+
+		Example:
+
+			- "Keep the explanation under 500 words."
+
+	5. Output Format :
+
+		- Specifies how the answer should be presented.
+
+		Example:
+			- "Present the answer as a table."
+
+
+
 
