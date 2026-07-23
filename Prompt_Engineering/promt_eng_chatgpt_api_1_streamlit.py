@@ -22,7 +22,7 @@ default_api_key = os.getenv("OPENAI_API_KEY")
 # ============================================================
 
 st.set_page_config(
-    page_title="AI Voice Assistant",
+    page_title="Suresh Bangaru AI Voice Assistant",
     page_icon="🤖",
     layout="wide"
 )
