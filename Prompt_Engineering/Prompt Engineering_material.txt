@@ -625,3 +625,16 @@ Real-World Mapping :
 | Generating reports with formatting rules               | **Instruction + Constraint** |
 
 
+For real invoice extraction projects, the most commonly used combination is:
+
+Role Prompting
+        +
+Instruction Prompting
+        +
+Constraint Prompting
+        +
+Few-shot Prompting (optional)
+
+because production systems usually need accurate extraction + fixed JSON output + consistent format.
+
+
