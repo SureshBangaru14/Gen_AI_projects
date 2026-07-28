@@ -94,7 +94,534 @@ Key Elements of a Good Prompt
 
 		Example:
 			- "Present the answer as a table."
+			
+			
+Prompting types :
 
 
+Prompting Techniques Explained (One by One) : 
+
+
+# Prompting Techniques Explained
+
+---
+
+# 1. Zero-shot Prompting
+
+## Definition
+Zero-shot prompting is a technique where you ask the AI to perform a task **without providing any examples**. The AI relies entirely on its pre-trained knowledge to understand and complete the task.
+
+## When to Use
+- Simple and straightforward tasks
+- General question answering
+- Translation
+- Summarization
+- Grammar correction
+
+## What the AI Learns
+The AI does not learn a new pattern from your prompt. Instead, it uses its existing knowledge to generate the response.
+
+## Common Use Cases
+- Document summarization
+- Language translation
+- Grammar correction
+- Content generation
+- General Q&A
+
+## Example
+
+**Prompt**
+```text
+Translate "Good morning" into French.
+```
+
+**Output**
+```text
+Bonjour
+```
+
+---
+
+# 2. One-shot Prompting
+
+## Definition
+One-shot prompting provides **one example** before asking the AI to perform a similar task. That single example teaches the AI the expected format or pattern.
+
+## When to Use
+- When one example is enough
+- Structured data extraction
+- Output formatting
+- Classification
+
+## What the AI Learns
+The AI learns the desired pattern from one example and applies it to new input.
+
+## Common Use Cases
+- Invoice data extraction
+- Resume parsing
+- Email classification
+- JSON generation
+- OCR post-processing
+
+## Example
+
+**Prompt**
+```text
+Example
+
+Invoice
+Customer: John
+Amount: $250
+
+Output
+{
+  "customer":"John",
+  "amount":250
+}
+
+Now extract data from:
+
+Invoice
+Customer: Alice
+Amount: $500
+```
+
+**Output**
+```json
+{
+  "customer":"Alice",
+  "amount":500
+}
+```
+
+---
+
+# 3. Few-shot Prompting
+
+## Definition
+Few-shot prompting provides **multiple examples** before asking the AI to complete a similar task.
+
+## When to Use
+- Pattern recognition
+- Classification
+- Consistent formatting
+- Entity extraction
+
+## What the AI Learns
+The AI identifies the common pattern across multiple examples and applies it to new data.
+
+## Common Use Cases
+- Product categorization
+- Sentiment analysis
+- Named Entity Recognition (NER)
+- Medical coding
+- Information extraction
+
+## Example
+
+**Prompt**
+```text
+Apple → Fruit
+Carrot → Vegetable
+Rose → Flower
+
+Banana →
+```
+
+**Output**
+```text
+Fruit
+```
+
+---
+
+# 4. Role Prompting
+
+## Definition
+Role prompting assigns the AI a profession, expertise, or identity before asking a question.
+
+## When to Use
+- Domain-specific tasks
+- Expert advice
+- Professional writing
+- Technical explanations
+
+## What the AI Learns
+The AI adopts the behavior, tone, and expertise of the assigned role.
+
+## Common Use Cases
+- Code review
+- Medical assistant
+- Financial advisor
+- Legal assistant
+- HR interviewer
+
+## Example
+
+**Prompt**
+```text
+You are a cybersecurity expert.
+
+Explain phishing attacks to a beginner.
+```
+
+**Output**
+```text
+Phishing is a cyberattack where attackers trick users into sharing passwords or personal information through fake emails or websites.
+```
+
+---
+
+# 5. Chain-of-Thought (CoT) Prompting
+
+## Definition
+Chain-of-Thought prompting encourages the AI to reason through a problem step by step before providing the final answer.
+
+## When to Use
+- Mathematical problems
+- Programming
+- Logical reasoning
+- Troubleshooting
+
+## What the AI Learns
+The AI breaks the problem into smaller reasoning steps before arriving at the answer.
+
+## Common Use Cases
+- Math solving
+- Debugging code
+- Root cause analysis
+- Decision making
+
+## Example
+
+**Prompt**
+```text
+A pen costs $5.
+John buys 4 pens.
+
+Think step by step and calculate the total.
+```
+
+**Output**
+```text
+Each pen costs $5.
+
+John buys 4 pens.
+
+4 × 5 = 20
+
+Final Answer: $20
+```
+
+---
+
+# 6. Self-Consistency Prompting
+
+## Definition
+Self-consistency prompting asks the AI to explore multiple reasoning paths and choose the most reliable answer.
+
+## When to Use
+- Complex reasoning
+- Research
+- Logical puzzles
+- Decision support
+
+## What the AI Learns
+The AI compares several reasoning approaches before selecting the best conclusion.
+
+## Common Use Cases
+- Research analysis
+- Puzzle solving
+- Medical diagnosis support
+- Strategic planning
+
+## Example
+
+**Prompt**
+```text
+Solve this puzzle using multiple approaches.
+
+Return the answer that appears most consistent.
+```
+
+**Output**
+```text
+After evaluating three reasoning paths, Option B is the most consistent solution.
+```
+
+---
+
+# 7. Tree-of-Thought (ToT) Prompting
+
+## Definition
+Tree-of-Thought prompting explores several possible solution paths before selecting the best one.
+
+## When to Use
+- Planning
+- Brainstorming
+- Architecture design
+- Business strategy
+
+## What the AI Learns
+The AI evaluates multiple alternatives instead of following a single reasoning path.
+
+## Common Use Cases
+- Project planning
+- Cloud migration
+- Product strategy
+- Software architecture
+
+## Example
+
+**Prompt**
+```text
+Suggest three approaches for migrating an application to the cloud.
+
+Compare them and recommend the best option.
+```
+
+**Output**
+```text
+Option 1: Lift and Shift
+
+Option 2: Replatform
+
+Option 3: Refactor
+
+Recommendation:
+Refactor provides the best long-term scalability.
+```
+
+---
+
+# 8. ReAct Prompting
+
+## Definition
+ReAct (Reason + Act) prompting combines reasoning with actions such as searching documentation, querying databases, or using external tools.
+
+## When to Use
+- AI agents
+- RAG applications
+- Tool calling
+- API integrations
+
+## What the AI Learns
+The AI determines when to reason internally and when to retrieve additional information.
+
+## Common Use Cases
+- Documentation search
+- Database lookup
+- API calls
+- AI assistants
+
+## Example
+
+**Prompt**
+```text
+Analyze the issue.
+
+Search the latest API documentation if needed.
+
+Recommend a solution.
+```
+
+**Output**
+```text
+The error occurs because the API endpoint has been deprecated.
+
+Use the new authentication endpoint instead.
+```
+
+---
+
+# 9. Instruction Prompting
+
+## Definition
+Instruction prompting gives the AI clear and direct instructions about the desired task.
+
+## When to Use
+- General-purpose AI tasks
+- Writing
+- Coding
+- Summarization
+
+## What the AI Learns
+The AI follows the explicit instructions provided by the user.
+
+## Common Use Cases
+- Email writing
+- Blog generation
+- Report creation
+- Article summarization
+
+## Example
+
+**Prompt**
+```text
+Summarize this article in exactly 100 words.
+```
+
+**Output**
+```text
+A concise 100-word summary of the article.
+```
+
+---
+
+# 10. Contextual Prompting
+
+## Definition
+Contextual prompting provides background information before asking the AI to perform a task.
+
+## When to Use
+- Customer support
+- Personalized responses
+- Document analysis
+- Contract review
+
+## What the AI Learns
+The AI uses the provided context to generate more relevant and accurate responses.
+
+## Common Use Cases
+- Customer support chatbot
+- Meeting summaries
+- Contract analysis
+- Document Question Answering
+
+## Example
+
+**Prompt**
+```text
+Customer Complaint:
+
+The package arrived damaged and two items are missing.
+
+Write a professional response.
+```
+
+**Output**
+```text
+We sincerely apologize for the inconvenience.
+
+We will replace the missing items and investigate the shipping issue immediately.
+```
+
+---
+
+# 11. Persona Prompting
+
+## Definition
+Persona prompting asks the AI to respond using a specific personality, communication style, or audience perspective.
+
+## When to Use
+- Education
+- Storytelling
+- Marketing
+- Interview coaching
+
+## What the AI Learns
+The AI adapts its tone, vocabulary, and explanation style based on the requested persona.
+
+## Common Use Cases
+- Teaching concepts
+- Sales copy
+- Children's stories
+- Interview preparation
+
+## Example
+
+**Prompt**
+```text
+Explain Artificial Intelligence as if you were a high school teacher.
+```
+
+**Output**
+```text
+Artificial Intelligence is like teaching computers to learn from examples, just like students learn through practice.
+```
+
+---
+
+# 12. Constraint Prompting
+
+## Definition
+Constraint prompting specifies rules or limitations that the AI must follow while generating the response.
+
+## When to Use
+- Structured output
+- JSON generation
+- SQL generation
+- Word limits
+- Coding standards
+
+## What the AI Learns
+The AI generates answers while respecting every constraint provided.
+
+## Common Use Cases
+- Invoice data extraction
+- API responses
+- SQL query generation
+- Resume parsing
+- JSON/XML output generation
+
+## Example
+
+**Prompt**
+```text
+Extract customer information from this invoice.
+
+Rules
+
+- Return only JSON.
+- No explanation.
+- Include only customer_name and total_amount.
+```
+
+**Output**
+```json
+{
+  "customer_name":"John",
+  "total_amount":250
+}
+```
+
+| Prompting Type                           | Description                                                                      | Example                                               |
+| ---------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Zero-shot prompting**                  | Ask the model to perform a task without examples.                                | "Translate 'Hello' to French."                        |
+| **One-shot prompting**                   | Provide one example before asking the task.                                      | Example translation, then ask for another.            |
+| **Few-shot prompting**                   | Give multiple examples to help the model learn the pattern.                      | Several sentiment-labeled reviews, then a new review. |
+| **Instruction prompting**                | Give clear instructions about what to do.                                        | "Summarize this article in 100 words."                |
+| **Role prompting**                       | Assign the AI a role or persona.                                                 | "You are a cybersecurity expert. Explain phishing."   |
+| **Chain-of-Thought (CoT)**               | Encourage step-by-step reasoning for complex tasks.                              | "Solve this math problem step by step."               |
+| **Self-Consistency prompting**           | Generate multiple reasoning paths and choose the most consistent answer.         | Useful for logical and mathematical problems.         |
+| **Tree-of-Thought (ToT)**                | Explore multiple reasoning branches before deciding on the best solution.        | Complex planning or puzzle solving.                   |
+| **ReAct (Reason + Act)**                 | Combine reasoning with actions such as using tools or searching for information. | AI reasons, searches, then answers.                   |
+| **Retrieval-Augmented Generation (RAG)** | Provide external documents or knowledge to improve factual accuracy.             | Ask questions based on a supplied PDF or database.    |
+| **Contextual prompting**                 | Include relevant background information in the prompt.                           | Provide company policies before asking a question.    |
+| **Constraint prompting**                 | Specify rules or limitations for the response.                                   | "Answer in exactly 50 words."                         |
+| **Template prompting**                   | Use a structured prompt with placeholders.                                       | "Write a {tone} email about {topic}."                 |
+| **Meta prompting**                       | Ask the model to improve or create prompts.                                      | "Rewrite this prompt to get better results."          |
+
+
+Real-World Mapping : 
+
+
+| **Task**                                               | **Recommended Prompt Type**  |
+| ------------------------------------------------------ | ---------------------------- |
+| Data extraction from invoices, resumes, or contracts   | **One-shot** or **Few-shot** |
+| Document summarization                                 | **Instruction**              |
+| Question answering from a document                     | **Contextual**               |
+| JSON/XML output generation                             | **Constraint**               |
+| Customer support chatbot                               | **Role + Contextual**        |
+| AI coding assistant                                    | **Role + Chain-of-Thought**  |
+| SQL generation from natural language                   | **Few-shot + Constraint**    |
+| Email classification                                   | **One-shot** or **Few-shot** |
+| Sentiment analysis                                     | **Few-shot**                 |
+| Translation                                            | **Zero-shot**                |
+| Travel planning                                        | **Tree-of-Thought**          |
+| Multi-step mathematical reasoning                      | **Chain-of-Thought**         |
+| AI agent with search or APIs                           | **ReAct**                    |
+| Writing in a specific tone (teacher, lawyer, marketer) | **Persona** or **Role**      |
+| Generating reports with formatting rules               | **Instruction + Constraint** |
 
 
