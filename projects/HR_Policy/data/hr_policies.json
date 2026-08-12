@@ -1,0 +1,50 @@
+[
+  {
+    "question": "What is the annual leave policy?",
+    "answer": "Employees earn 15 paid annual leave days per year, increasing with tenure. Leave must be requested at least two weeks in advance unless approved by the manager."
+  },
+  {
+    "question": "How many sick days do employees get?",
+    "answer": "Employees receive 10 paid sick leave days per calendar year. If more time is needed, managers may approve additional unpaid leave based on company policy."
+  },
+  {
+    "question": "What is the maternity leave policy?",
+    "answer": "Employees are eligible for 12 weeks of paid maternity leave after completing 6 months of service. The leave may be combined with applicable state or federal benefits."
+  },
+  {
+    "question": "Can I work remotely?",
+    "answer": "Remote work is permitted for eligible roles with manager approval. Employees must maintain internet connectivity, adhere to productivity standards, and comply with data security policies."
+  },
+  {
+    "question": "What are the working hours?",
+    "answer": "Standard working hours are 9:00 AM to 5:00 PM, Monday to Friday, with a 1-hour lunch break. Flexible work arrangements may be approved for qualified employees."
+  },
+  {
+    "question": "How do I request overtime?",
+    "answer": "Overtime must be pre-approved by the direct manager unless required by emergency operations. Non-exempt employees are compensated at 1.5 times their regular hourly rate for approved overtime."
+  },
+  {
+    "question": "What is the confidentiality policy?",
+    "answer": "All employees must protect company confidential information, customer data, and internal business plans. Sharing sensitive information without authorization is a disciplinary issue and may result in termination."
+  },
+  {
+    "question": "How do employees report harassment?",
+    "answer": "Employees can report harassment or discrimination to HR, a manager, or the ethics hotline. Reports are reviewed confidentially and retaliation for reporting is prohibited."
+  },
+  {
+    "question": "What is the expense reimbursement process?",
+    "answer": "Employees must submit expense claims within 30 days of purchase with itemized receipts. Approved reimbursements are processed through payroll and paid according to the finance cycle."
+  },
+  {
+    "question": "What is the probation period?",
+    "answer": "The standard probation period is 6 months. During this period, performance and behavior are monitored, and early termination may occur if expectations are not met."
+  },
+  {
+    "question": "How are performance reviews conducted?",
+    "answer": "Performance reviews are completed twice a year in January and July. Managers evaluate goals, competencies, and overall contribution, followed by a development plan."
+  },
+  {
+    "question": "What is the company dress code?",
+    "answer": "The company follows a business casual dress code in most office locations. Formal attire is required for client meetings, presentations, and executive events."
+  }
+]
