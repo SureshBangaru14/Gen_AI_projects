@@ -57,7 +57,7 @@ from sklearn.metrics.pairwise import (cosine_similarity, euclidean_distances)
 # OpenAI Client
 # ============================================================
 
-client = OpenAI(api_key=api_key)
+client = OpenAI(api_key="api_key")
 
 # ============================================================
 # Load JSON Data
@@ -412,5 +412,6 @@ print("============================================================")
 print("Distance:", round(euclidean_scores[0][best_euclidean_index],4))
 
 print("Question:",raw_data[best_euclidean_index]["question"])
+
 
 print("Answer:",raw_data[best_euclidean_index]["answer"])
