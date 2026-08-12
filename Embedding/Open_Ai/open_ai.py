@@ -57,7 +57,7 @@ from sklearn.metrics.pairwise import (cosine_similarity, euclidean_distances)
 # OpenAI Client
 # ============================================================
 
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=api_key)
 
 # ============================================================
 # Load JSON Data
