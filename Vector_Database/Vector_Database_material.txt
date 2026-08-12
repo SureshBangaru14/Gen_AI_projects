@@ -1,0 +1,137 @@
+Vector Database : 
+
+	- A Vector Database is a type of database designed to store, search, and retrieve vectors — numerical representations of data such as text, images, audio, videos, and other complex information.
+
+	- Instead of searching by exact keywords, vector databases search by meaning and similarity.
+	
+	
+
+1. What is a vector?
+
+	- A vector is a list of numbers that represents the characteristics of something.
+
+	- For example, an AI model can convert the sentence:
+
+		"A dog playing in a park"
+
+		into a vector like:
+
+			[0.23, -0.71, 0.45, 0.18, ...]
+			
+			- This vector is called an embedding. The numbers capture the meaning and context of the data.
+			
+			
+	- Two sentences with similar meanings will have vectors that are close together:
+
+		"The puppy is running outside"
+			↓
+		[0.24, -0.70, 0.46, 0.17]
+
+		"A dog playing in a park"
+			↓
+		[0.23, -0.71, 0.45, 0.18]
+
+		- The database can recognize that they are related even though the words are different.
+		
+		
+		
+2. How does a vector database work?
+
+	A typical flow looks like this:
+	
+			Original data
+			     |
+			       ↓
+			Embedding model
+			     |
+			       ↓
+			Vector representation
+			     |
+			       ↓
+			Vector Database
+			     |
+			       ↓
+			Similarity search
+			     |
+			       ↓
+			Most relevant results
+			
+			
+			
+3. How is it different from a normal database :
+
+
+
+| Traditional Database        | Vector Database                    |
+| --------------------------- | ---------------------------------- |
+| Searches exact values       | Searches meaning                   |
+| Uses SQL queries            | Uses similarity search             |
+| Matches words               | Matches concepts                   |
+| Good for structured data    | Good for unstructured data         |
+| Example: customer ID lookup | Example: finding similar documents |
+
+
+Example:
+
+	SQL database:
+
+		- Find products where name = "running shoes"
+
+	Vector database:
+
+		- Find products similar to:
+			"comfortable shoes for jogging"
+
+
+4. Where are vector databases used?
+
+	- AI chatbots and RAG systems
+
+	- Large Language Models (LLMs) like ChatGPT cannot store all company documents inside the model. A vector database allows an AI system to:
+
+		- Search company documents
+		- Retrieve relevant information
+		- Give that information to the LLM
+		- Generate an accurate answer
+		- This approach is called Retrieval-Augmented Generation (RAG).	
+		
+		
+		
+5. Other applications
+
+	- Search engines
+
+		- Semantic search
+		- Finding related content
+
+	- Recommendation systems
+
+		- "People who liked this also liked..."
+
+	- Image search
+
+		- Find images similar to an uploaded picture
+
+	- Customer support
+
+		- Find previous solutions to similar problems
+
+	- Fraud detection
+
+		- Find unusual patterns similar to known fraud cases
+		
+	
+6. Popular vector databases
+
+	- Some widely used vector databases include:
+
+		Pinecone
+		Weaviate
+		Milvus
+		Chroma
+		Qdrant
+		MongoDB (with vector search capabilities)
+		PostgreSQL (using extensions such as pgvector)	
+		
+		
+					
