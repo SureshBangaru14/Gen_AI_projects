@@ -6,3 +6,4 @@ scikit-learn
 openai
 sentence-transformers
 gensim
+torchvision
