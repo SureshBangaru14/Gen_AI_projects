@@ -50,6 +50,15 @@ class RetrievalEngine:
             chroma_collection_name
         )
 
+        # --------------------------------------------------------
+        # Retrieval depth
+        #
+        # Top-K in the application represents FINAL RESUME rows.
+        # Vector retrieval works on CHUNKS. When resume_chunks are
+        # available, retrieve enough chunks to allow every uploaded
+        # resume to participate in the final scoring stage.
+        # --------------------------------------------------------
+        self.final_top_k = max(1, int(top_k))
 
         self.embedding_manager = (
             EmbeddingFactory.create(
@@ -68,6 +77,35 @@ class RetrievalEngine:
 
 
     # ========================================================
+    # EFFECTIVE RETRIEVAL K
+    # ========================================================
+
+    def _get_retrieval_top_k(self, resume_chunks=None):
+        """
+        Determine how many chunk-level results should be retrieved.
+
+        The UI Top-K is the number of final resume rows. Therefore,
+        when the complete resume chunk map is available, retrieve
+        enough chunks for all resumes. DocumentProcess then groups
+        chunks by resume and scores every uploaded resume.
+        """
+        if not resume_chunks:
+            return self.final_top_k
+
+        total_chunks = sum(
+            len(chunks or [])
+            for chunks in resume_chunks.values()
+        )
+
+        if total_chunks <= 0:
+            return self.final_top_k
+
+        return max(
+            self.final_top_k,
+            total_chunks
+        )
+
+    # ========================================================
     # MAIN SEARCH
     # ========================================================
 
@@ -82,6 +120,14 @@ class RetrievalEngine:
 
             return []
 
+        # --------------------------------------------------------
+        # Use chunk-level retrieval depth large enough to include
+        # every uploaded resume. Final Top-K is applied later by
+        # DocumentProcess after resume-level scoring.
+        # --------------------------------------------------------
+        self.top_k = self._get_retrieval_top_k(
+            resume_chunks
+        )
 
         method = (
             self.similarity_method

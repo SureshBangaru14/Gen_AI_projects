@@ -314,12 +314,64 @@ with st.sidebar:
 
 
     # ========================================================
+    # CHUNKING METHOD
+    # ========================================================
+
+    st.markdown(
+        "### 🧩 Chunking"
+    )
+
+    chunking_methods = [
+        "Recursive Character Text Splitting",
+        "Fixed-Size Chunking",
+        "Token-Based Chunking",
+        "Semantic Chunking",
+        "Structure-Based Chunking",
+        "Markdown-Based Chunking",
+        "HTML-Based Chunking",
+        "Sentence-Based Chunking",
+        "Paragraph-Based Chunking",
+        "Document-Section Chunking",
+        "Parent-Child Chunking",
+        "Hierarchical Chunking"
+    ]
+
+    chunking_method = st.selectbox(
+        "Chunking Method",
+        chunking_methods,
+        index=0,
+        help=(
+            "Select the chunking strategy used to split "
+            "resume text before embedding and retrieval."
+        )
+    )
+
+    chunk_size = st.number_input(
+        "Chunk Size",
+        min_value=100,
+        max_value=5000,
+        value=500,
+        step=50,
+        help="Chunk size in characters for character/structure-based methods."
+    )
+
+    chunk_overlap = st.number_input(
+        "Chunk Overlap",
+        min_value=0,
+        max_value=max(0, int(chunk_size) - 1),
+        value=min(100, max(0, int(chunk_size) - 1)),
+        step=10,
+        help="Overlap between consecutive chunks."
+    )
+
+
+    # ========================================================
     # TOP K
     # ========================================================
 
     top_k = st.slider(
 
-        "Top Matching Results",
+        "Top Matching Resumes",
 
         min_value=1,
 
@@ -939,6 +991,15 @@ if parse_button:
             similarity_method=
                 similarity_method,
 
+            chunking_method=
+                chunking_method,
+
+            chunk_size=
+                int(chunk_size),
+
+            chunk_overlap=
+                int(chunk_overlap),
+
             top_k=
                 top_k,
 
@@ -1074,84 +1135,87 @@ if result:
     else:
 
         # ====================================================
-        # TABLE
+        # COMPLETE MATCHING + CONTEXT TABLE
         # ====================================================
 
         table_data = []
 
-
         for item in matching_results:
 
             match_value = item.get(
-
                 "match_percentage",
-
                 0
-
             )
 
-
             try:
-
-                match_value = float(
-                    match_value
-                )
-
-            except (
-                TypeError,
-                ValueError
-            ):
-
+                match_value = float(match_value)
+            except (TypeError, ValueError):
                 match_value = 0.0
 
+            retrieval_score = item.get(
+                "retrieval_score"
+            )
+
+            if retrieval_score is None:
+                retrieval_display = "N/A"
+            else:
+                try:
+                    retrieval_display = f"{float(retrieval_score):.4f}"
+                except (TypeError, ValueError):
+                    retrieval_display = "N/A"
+
+            context = item.get(
+                "context_details",
+                {}
+            ) or {}
+
+            usage = context.get(
+                "context_usage_percent"
+            )
+
+            try:
+                usage_display = f"{float(usage):.2f}%"
+            except (TypeError, ValueError):
+                usage_display = "N/A"
 
             table_data.append({
-
-                "Rank":
-                    item.get(
-                        "rank",
-                        0
-                    ),
-
-                "Resume":
-                    item.get(
-                        "file_name",
-                        ""
-                    ),
-
-                "Candidate":
-                    item.get(
-                        "candidate_name",
-                        ""
-                    ),
-
-                "Match %":
-                    f"{match_value:.2f}%",
-
-                "Retrieval":
-                    item.get(
-                        "retrieval_method",
-                        ""
-                    )
-
+                "Rank": item.get("rank", 0),
+                "Resume": item.get("file_name", ""),
+                "Candidate": (
+                    item.get("candidate_name")
+                    or item.get("file_name", "Unknown")
+                ),
+                "Match %": f"{match_value:.2f}%",
+                "Retrieval Score": retrieval_display,
+                "Retrieval": item.get("retrieval_method", ""),
+                "Context Window": context.get("context_window", "N/A"),
+                "Output Tokens": context.get("output_tokens", "N/A"),
+                "Safety Buffer": context.get("safety_buffer", "N/A"),
+                "Available Input Tokens": context.get("available_input_tokens", "N/A"),
+                "Schema Tokens": context.get("schema_tokens", "N/A"),
+                "System Prompt Tokens": context.get("system_prompt_tokens", "N/A"),
+                "User Prompt Tokens": context.get("user_prompt_tokens", "N/A"),
+                "Job Description Tokens": context.get("job_description_tokens", "N/A"),
+                "Resume Tokens": context.get("resume_tokens", "N/A"),
+                "Total Context Used": context.get("total_context_used", "N/A"),
+                "Remaining Tokens": context.get("remaining_tokens", "N/A"),
+                "Context Usage %": usage_display,
+                "Resume Fits Directly": context.get("resume_fits_directly", "N/A")
             })
 
-
-        dataframe = pd.DataFrame(
-            table_data
-        )
-
+        dataframe = pd.DataFrame(table_data)
 
         st.dataframe(
-
             dataframe,
-
             use_container_width=True,
-
-            hide_index=True
-
+            hide_index=True,
+            height=min(700, 90 + (len(table_data) * 35))
         )
 
+        st.caption(
+            f"Showing {len(table_data)} of {len(resume_files)} uploaded resume(s). "
+            "Top-K is applied to resumes after scoring, not individual chunks."
+        )
 
         # ====================================================
         # CANDIDATE SELECTION
@@ -1362,6 +1426,65 @@ if result:
 
 
         # ====================================================
+        # CHUNKING INFORMATION
+        # ====================================================
+
+        chunk_info = result.get(
+            "chunk_data",
+            {}
+        )
+
+        vector_info = result.get(
+            "vector_data",
+            {}
+        )
+
+        st.markdown(
+            "#### 🧩 Chunking Information"
+        )
+
+        chunk_col1, chunk_col2, chunk_col3 = st.columns(3)
+
+        with chunk_col1:
+
+            st.write(
+                "**Chunking Method:**",
+                chunk_info.get(
+                    "chunking_method",
+                    chunking_method
+                )
+            )
+
+        with chunk_col2:
+
+            st.write(
+                "**Chunk Size:**",
+                chunk_info.get(
+                    "chunk_size",
+                    chunk_size
+                )
+            )
+
+        with chunk_col3:
+
+            st.write(
+                "**Chunk Overlap:**",
+                chunk_info.get(
+                    "chunk_overlap",
+                    chunk_overlap
+                )
+            )
+
+        st.write(
+            "**Total Chunks:**",
+            vector_info.get(
+                "total_chunks",
+                "N/A"
+            )
+        )
+
+
+        # ====================================================
         # COMPONENT SCORES
         # ====================================================
 
@@ -1533,6 +1656,93 @@ if result:
 
                 )
 
+
+        # ====================================================
+        # GOOD TO HAVE SKILLS
+        # ====================================================
+
+        st.markdown(
+            "### ⭐ Good-to-Have Skills"
+        )
+
+        good_to_have_skills = (
+            selected_result.get(
+                "good_to_have_skills",
+                []
+            )
+        )
+
+        matched_good_to_have_skills = (
+            selected_result.get(
+                "matched_good_to_have_skills",
+                []
+            )
+        )
+
+        missing_good_to_have_skills = (
+            selected_result.get(
+                "missing_good_to_have_skills",
+                []
+            )
+        )
+
+        if good_to_have_skills:
+
+            st.write(
+                "**Matched Good-to-Have:**",
+                ", ".join(
+                    map(
+                        str,
+                        matched_good_to_have_skills
+                    )
+                )
+                if matched_good_to_have_skills
+                else "None"
+            )
+
+            st.write(
+                "**Missing Good-to-Have:**",
+                ", ".join(
+                    map(
+                        str,
+                        missing_good_to_have_skills
+                    )
+                )
+                if missing_good_to_have_skills
+                else "None"
+            )
+
+        else:
+
+            st.info(
+                "No Good-to-Have skills were identified."
+            )
+
+        st.write(
+            "**Required Skill Source:**",
+            selected_result.get(
+                "required_skill_source",
+                "N/A"
+            )
+        )
+
+        if selected_result.get(
+            "has_explicit_required_skills",
+            False
+        ):
+
+            st.success(
+                "JD contains an explicit Required Skills section."
+            )
+
+        else:
+
+            st.info(
+                "JD has no explicit Required Skills section. "
+                "Required skills were inferred from the Summary, "
+                "Responsibilities, Technology Stack, and other "
+                "non-optional sections."
+            )
 
         # ====================================================
         # EXPERIENCE
@@ -2013,6 +2223,21 @@ if result:
                 "similarity_method",
 
                 "N/A"
+
+            )
+
+        )
+
+
+        st.write(
+
+            "**Chunking Method:**",
+
+            chunk_data.get(
+
+                "chunking_method",
+
+                chunking_method
 
             )
 
