@@ -1,0 +1,759 @@
+COMPLETE CHUNKING — 1 TO 50
+│
+├── LEVEL 1 — BASIC
+│   │
+│   ├── 01. What is Chunking
+│   ├── 02. Why Chunking
+│   ├── 03. Chunk Size
+│   ├── 04. Chunk Overlap
+│   ├── 05. Characters vs Tokens
+│   ├── 06. Context Window
+│   ├── 07. Maximum Token Limit
+│   ├── 08. Minimum / Maximum Chunk Size
+│   ├── 09. Fixed-Size Chunking
+│   ├── 10. Character-Based Chunking
+│   ├── 11. Token-Based Chunking
+│   ├── 12. Sentence-Based Chunking
+│   ├── 13. Paragraph-Based Chunking
+│   ├── 14. Line-Based Chunking
+│   └── 15. Page-Based Chunking
+│
+│           ↓
+│
+├── LEVEL 2 — INTERMEDIATE
+│   │
+│   ├── 16. Recursive Chunking
+│   ├── 17. Recursive Separator Hierarchy
+│   ├── 18. Structure-Aware Chunking
+│   ├── 19. Semantic Chunking
+│   ├── 20. Sentence Chunking
+│   ├── 21. Token-Aware Chunking
+│   ├── 22. Metadata-Aware Chunking
+│   ├── 23. Overlap Strategies
+│   ├── 24. PDF Chunking
+│   ├── 25. Resume Chunking
+│   ├── 26. Legal Document Chunking
+│   ├── 27. Technical Documentation Chunking
+│   ├── 28. Financial Document Chunking
+│   ├── 29. Markdown Chunking
+│   ├── 30. HTML Chunking
+│   ├── 31. JSON / XML Chunking
+│   ├── 32. Table Chunking
+│   ├── 33. Code Chunking
+│   └── 34. Chunk Quality
+│
+│           ↓
+│
+├── LEVEL 3 — ADVANCED
+│   │
+│   ├── 35. Recursive + Semantic Hybrid Chunking
+│   ├── 36. Hierarchical Chunking
+│   ├── 37. Parent-Child Chunking
+│   ├── 38. Contextual Chunking
+│   ├── 39. Contextual Retrieval
+│   ├── 40. Late Chunking
+│   ├── 41. Small-to-Large Retrieval
+│   ├── 42. Multi-Vector Chunking
+│   ├── 43. Multi-Representation Chunking
+│   ├── 44. Query-Aware Chunking
+│   ├── 45. Dynamic Chunking
+│   ├── 46. Agentic Chunking
+│   ├── 47. LLM-Based Chunking
+│   ├── 48. Sliding Window Chunking
+│   ├── 49. Sentence Window Retrieval
+│   └── 50. Layout-Aware Chunking
+│
+│           ↓
+│
+└── NEXT — EXPERT
+    │
+    ├── Adaptive Chunking
+    ├── Query-Adaptive Retrieval
+    ├── Chunk Optimization
+    ├── Chunk Evaluation
+    ├── Chunk Deduplication
+    ├── Chunk Compression
+    ├── Chunk Graphs
+    ├── Chunk Relationships
+    ├── Hybrid Search Chunking
+    └── Production RAG Chunking
+
+
+
+
+
+
+01. What is Chunking :
+
+	- Chunking is the process of breaking a large document into smaller, meaningful pieces called chunks.
+	- In RAG (Retrieval-Augmented Generation), documents are usually too large to directly embed and search efficiently. So we split them into smaller sections before creating embeddings.
+	
+	- Simple example
+	
+		- Suppose you have a 10-page PDF:
+		
+		
+			10-Page PDF
+			     │
+			       ▼
+			  Chunking
+			     │
+			     ├── Chunk 1
+			     ├── Chunk 2
+			     ├── Chunk 3
+			     ├── Chunk 4
+			     └── ...
+			     
+		- For example:
+
+			Original Document:
+
+
+			Employee Leave Policy
+
+
+			Employees are entitled to 18 days of annual leave.
+			Leave requests must be submitted through the HR portal.
+			Managers must approve leave requests.
+			Employees can carry forward up to 5 unused days.
+			
+			
+			
+		- After chunking:
+
+			Chunk 1:
+			Employees are entitled to 18 days of annual leave.
+
+
+			Chunk 2:
+			Leave requests must be submitted through the HR portal.
+
+
+			Chunk 3:
+			Managers must approve leave requests.
+
+
+			Chunk 4:
+			Employees can carry forward up to 5 unused days.
+			
+02. Why Chunking :
+
+	- Chunking is required in RAG because large documents should not be treated as one single piece of text. We divide them into smaller, meaningful pieces so the system can retrieve the most relevant information for a user's question.
+	
+	
+	1. Large Documents Are Too Big :
+
+		Imagine a 500-page HR policy document:
+
+		500-page PDF
+		     │
+		       ▼
+		   Chunking
+		     │
+		     ├── Chunk 1
+		     ├── Chunk 2
+		     ├── Chunk 3
+		     ├── ...
+		     └── Chunk 500+
+
+		Instead of processing the entire document for every question, RAG can search the smaller chunks.
+		
+		
+	2. Better Retrieval Accuracy :
+
+		Suppose the user asks:
+
+		"How many annual leave days are available?"
+
+		Without chunking:
+
+			500-page document
+			       ↓
+			One embedding
+			       ↓
+			Poorly focused representation
+			
+		With chunking:
+
+			Document
+			   ↓
+			Chunks
+			   ↓
+			Embedding each chunk
+			   ↓
+			Vector Database
+			   ↓
+			Similarity Search
+			   ↓
+			Annual Leave Chunk
+
+			The system can retrieve the specific chunk containing the answer.
+			
+	
+	3. Better Embeddings :
+
+		An embedding represents the meaning of text.
+
+		Consider:
+
+		Chunk 1 → Leave Policy
+		Chunk 2 → Salary Policy
+		Chunk 3 → Attendance Policy
+		Chunk 4 → Insurance Policy
+
+		Each embedding is focused on a specific topic.
+
+		This is generally better for semantic search than creating one embedding for:
+
+		Leave + Salary + Attendance + Insurance + Travel + ...
+		
+	
+	4. Avoid Context-Window Problems :
+
+		LLMs have a maximum context window.
+
+		For example:
+
+			Large Document
+			      ↓
+			100,000 tokens
+
+			You don't want to send all 100,000 tokens for every question.
+
+			Instead:
+
+			User Question
+			      ↓
+			Vector Search
+			      ↓
+			Top 3–5 Relevant Chunks
+			      ↓
+			LLM Context
+			      ↓
+			Answer
+
+			This keeps the prompt manageable.
+			
+	5. Reduce Token Usage :
+
+		Suppose:
+
+		Entire document = 50,000 tokens
+		Relevant information = 500 tokens
+
+		Without retrieval:
+
+		50,000 tokens → LLM
+
+		With chunking + retrieval:
+
+		500–2,000 relevant tokens → LLM
+
+		This can reduce unnecessary processing and cost, depending on the model and architecture.
+		
+		
+		
+	6. Improve Search Precision :
+
+		Imagine a document contains:
+
+		Chunk 1 → Employee Leave
+		Chunk 2 → Employee Salary
+		Chunk 3 → Employee Benefits
+		Chunk 4 → Employee Attendance
+		Chunk 5 → Employee Travel
+
+		Question:
+
+		"What is the employee's annual leave entitlement?"
+
+		A vector database can search these chunks and identify:
+
+		Chunk 1 → HIGH similarity
+		Chunk 2 → LOW similarity
+		Chunk 3 → LOW similarity
+		Chunk 4 → LOW similarity
+		Chunk 5 → LOW similarity
+
+		So the relevant information is easier to retrieve.
+		
+		
+	7. Preserve Local Context :
+
+		Good chunking doesn't just make text smaller.
+
+		It tries to keep related information together.
+
+		For example:
+
+		Chunk 1
+		────────────────────────
+		Annual Leave Policy
+
+
+		Employees receive 18 days
+		of annual leave per year.
+
+
+		Employees must request leave
+		through the HR portal.
+		────────────────────────
+
+		This is better than splitting every sentence randomly.
+		
+		
+03. Chunk Size :
+
+	What is Chunk Size?
+
+	Chunk size defines how much text should be included in each chunk when a document is split.
+
+	For example:
+
+	Document
+	   ↓
+	Chunking
+	   ↓
+	┌──────────────┐
+	│ Chunk 1      │ ← 500 units
+	├──────────────┤
+	│ Chunk 2      │ ← 500 units
+	├──────────────┤
+	│ Chunk 3      │ ← 500 units
+	└──────────────┘
+
+	The important question is:
+
+	500 what? Characters or tokens?
+	
+	That depends on the chunking method and length_function.
+	
+	
+	1. Simple Example :
+
+		Suppose we have:
+
+		Employee Leave Policy
+
+
+		Employees are entitled to 18 days of annual leave.
+		Employees must submit leave requests through the HR portal.
+		Managers are responsible for approving leave requests.
+		Employees can carry forward unused leave according to company policy.
+
+		If:
+
+		chunk_size = 100
+
+		the text is divided into smaller pieces around that size.
+
+		If:
+
+		chunk_size = 1000
+
+		the chunks will contain much more information.
+		
+		
+	2. Small Chunk vs Large Chunk :
+	
+		Small Chunk:
+		
+		chunk_size = 200
+
+		Conceptually:
+
+		Document
+		   │
+		   ├── Chunk 1 → 200
+		   ├── Chunk 2 → 200
+		   ├── Chunk 3 → 200
+		   ├── Chunk 4 → 200
+		   └── ...
+		   
+		Advantages: 
+		
+			More precise retrieval
+			Less irrelevant information
+			Good for short factual questions
+			More focused embeddings
+			
+		Disadvantages :
+		
+			Can lose context
+			Sentences or concepts may be separated
+			More chunks are created
+			More vectors need to be stored
+
+	
+	3. Large Chunk :
+
+		Example:
+
+		chunk_size = 1500
+
+		Conceptually:
+
+		Document
+		   │
+		   ├── Chunk 1 → 1500
+		   ├── Chunk 2 → 1500
+		   ├── Chunk 3 → 1500
+		   └── ...
+		   
+		Advantages :
+		
+			More context per chunk
+			Related information is more likely to stay together
+			Useful for complex questions
+			Fewer vectors
+			
+		Disadvantages :
+		
+			Retrieval may be less precise
+			More irrelevant information can be retrieved
+			More tokens may be sent to the LLM
+			Embeddings represent more mixed information
+			
+			
+	4. Chunk Size vs Chunk Quality :
+
+		A common beginner mistake is:
+
+			"I'll just use 500 characters because everyone uses 500."
+
+			That is not a good approach.
+
+			Instead, think:
+
+				      Chunk Size
+					  │
+			       ┌──────────┴──────────┐
+			          ▼                               ▼
+			   Too Small              Too Large
+			       │                     │
+			          ▼                               ▼
+			Lost context          Too much noise
+			       │                     │
+			       └──────────┬──────────┘
+					   ▼
+				    Poor Retrieval
+
+			The goal is:
+
+				     Optimal Chunk
+					  │
+				┌─────────┴─────────┐
+				▼                           ▼
+			 Enough context       Minimal noise
+				│                   │
+				└─────────┬─────────┘
+					  ▼
+				  Better Retrieval
+				  
+				  
+				  
+04. Chunk Overlap : 
+
+		What is Chunk Overlap?
+
+		Chunk overlap is the amount of text shared between two consecutive chunks.
+
+		It is used to prevent important information from being lost when a document is split at a boundary.
+
+		Simple example
+
+		Suppose:
+
+		chunk_size = 500
+		chunk_overlap = 100
+
+		Then:
+
+		Chunk 1
+		├──────────────────────────────────────┤
+		1                                    500
+
+
+				    ↓ 100 characters overlap
+
+
+		Chunk 2
+				    ├──────────────────────────────────────┤
+				  401                                    900
+				  
+				  
+				  
+				  
+		1. Why Do We Need Chunk Overlap?
+
+			Consider this sentence:
+
+			Employees are eligible for annual leave after completing
+			six months of continuous service with the organization.
+
+			Imagine the chunk boundary occurs here:
+			
+			Without overlap:
+
+			Chunk 1:
+			Employees are eligible for annual leave after completing
+
+
+			Chunk 2:
+			six months of continuous service with the organization.
+
+			The meaning is split across two chunks.
+
+			This can make retrieval less effective.
+
+			With overlap:
+
+			Chunk 1:
+			Employees are eligible for annual leave after completing
+			six months of continuous service.
+
+
+			Chunk 2:
+			six months of continuous service. Employees can carry
+			forward unused leave according to company policy.
+
+			The important context appears in both chunks.
+
+			So approximately 100 characters from Chunk 1 are repeated in Chunk 2.
+			
+			
+			
+		2. Important Trade-Off
+
+			Think of overlap as a balance:
+
+				      Chunk Overlap
+					   │
+			       ┌───────────┴───────────┐
+			          ▼                                  ▼
+			Too Little                 Too Much
+			       │                       │
+			Lost context              Duplication
+			       │                       │
+			Poor retrieval            More vectors
+			       │                       │
+			       └───────────┬───────────┘
+					    ▼
+				      Optimal Range
+					   │
+					    ▼
+				  Better Context Preservation
+
+			The objective is:
+
+			Enough overlap to preserve context, but not so much that you create unnecessary duplication.
+			
+			Simple rule to start: try 10–20% overlap, then evaluate retrieval quality rather than assuming one value is always best.
+
+
+05. Characters vs Tokens : 
+
+	This is an important concept in chunking and RAG because chunk_size=500 can mean very different things depending on whether your splitter measures characters or tokens.
+
+	1. What is a Character?
+
+		A character is an individual symbol in text.
+
+		For example:
+
+		Hello
+
+		contains:
+
+		H → character
+		e → character
+		l → character
+		l → character
+		o → character
+
+		So:
+
+		"Hello" = 5 characters
+
+		Spaces and punctuation are also characters:
+
+			Hello!
+
+			approximately contains:
+
+			H e l l o ! 
+			
+			
+	2. What is a Token?
+
+		A token is a unit produced by a model's tokenizer.
+
+		A token can be:
+
+			a whole word
+			part of a word
+			punctuation
+			whitespace-related text
+			a subword
+
+		For example, conceptually:
+
+		Artificial intelligence is powerful.
+
+		might become something like:
+
+		Artificial
+		intelligence
+		is
+		power
+		ful
+		.
+
+		The exact tokenization depends on the tokenizer/model.
+
+		So:
+
+		A token is not the same thing as a word or a character.
+		
+		
+	3. Character vs Token
+
+		Consider:
+
+		Artificial Intelligence
+
+		Character-based measurement counts the actual characters:
+
+		A r t i f i c i a l _ I n t e l l i g e n c e
+
+		Token-based measurement uses the model tokenizer.
+
+		Therefore:
+
+		Characters ≠ Tokens
+
+		This is extremely important when designing a RAG system.
+		
+06. CONTEXT WINDOW :
+
+	1. Definition
+
+		- A Context Window is the maximum amount of tokenized information an LLM can process within a single request/conversation context.
+
+		- In simple words:
+
+			- Context Window = The total token space available to the LLM for understanding instructions, questions, retrieved documents, conversation history, and generating a response.
+
+		Example:
+
+			Context Window = 8,000 tokens
+
+			This means the model has a limited token capacity that must accommodate the information being processed.
+			
+			
+	2. Concept
+
+		- Think of the Context Window like a working desk.
+		- The model can only work with the information that fits within its available context.
+		
+		
+		                 LLM
+				  │
+				   ▼
+			┌─────────────────────┐
+			│    WORKING DESK     │
+			│   8,000 TOKENS      │
+			│                     │
+			│ System Prompt       │
+			│ User Question       │
+			│ RAG Chunks          │
+			│ Conversation        │
+			│ Other Context       │
+			│                     │
+			└─────────────────────┘
+				  │
+				   ▼
+				Answer
+				   
+	3. Context Window in Tokens
+
+		- Context windows are measured in tokens, not characters.
+
+			For example:
+
+				Context Window = 8,000 tokens
+
+				The flow is:
+
+					Text
+					  │
+					  ▼
+					Tokenizer
+					  │
+					  ▼
+					Tokens
+					  │
+					  ▼
+					Context Window
+					  │
+					  ▼
+					LLM
+
+				Therefore:
+
+					Characters
+					    ↓
+					Tokens
+					    ↓
+					Context Window
+							
+							
+	4. What Goes Inside a Context Window?
+
+		A request can contain:
+
+			CONTEXT WINDOW
+			│
+			├── System Instructions
+			│
+			├── User Question
+			│
+			├── Retrieved RAG Chunks
+			│
+			├── Conversation History
+			│
+			├── Tool Results
+			│
+			└── Other Input
+
+		For example:
+
+			System Instructions       = 500 tokens
+			User Question             = 100 tokens
+			Retrieved Chunk 1         = 1,000 tokens
+			Retrieved Chunk 2         = 1,000 tokens
+			Retrieved Chunk 3         = 1,000 tokens
+			Conversation History      = 1,000 tokens
+			
+			
+		Total:
+
+			500
+			+ 100
+			+ 1000
+			+ 1000
+			+ 1000
+			+ 1000
+			──────
+			4600 tokens
+
+			If:
+
+			 - Context Window = 8,000 tokens
+
+			then:
+
+				Context Window = 8,000
+				Input Context  = 4,600
+
+				There is therefore 3,400 tokens of theoretical remaining capacity, but the actual output limit depends on the model/API and its input/output constraints.
