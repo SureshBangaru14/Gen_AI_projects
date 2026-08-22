@@ -1,4 +1,6 @@
-import tiktoken
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+import re
 
 
 class ResumeChunker:
@@ -9,104 +11,76 @@ class ResumeChunker:
 
     def __init__(
         self,
-        model_name,
-        chunk_size,
-        chunk_overlap
+        chunk_size=500,
+        chunk_overlap=100
     ):
-
-        self.model_name = (
-            model_name
-        )
-
-        self.chunk_size = (
-            int(chunk_size)
-        )
-
-        self.chunk_overlap = (
-            int(chunk_overlap)
-        )
-
-
-        # ----------------------------------------------------
-        # TOKENIZER
-        # ----------------------------------------------------
-
-        try:
-
-            self.encoding = (
-                tiktoken.encoding_for_model(
-                    model_name
-                )
-            )
-
-        except KeyError:
-
-            self.encoding = (
-                tiktoken.get_encoding(
-                    "o200k_base"
-                )
-            )
-
 
         # ----------------------------------------------------
         # VALIDATION
         # ----------------------------------------------------
 
-        if self.chunk_size <= 0:
+        if chunk_size <= 0:
 
             raise ValueError(
                 "chunk_size must be greater than 0."
             )
 
 
-        if self.chunk_overlap < 0:
+        if chunk_overlap < 0:
 
             raise ValueError(
                 "chunk_overlap cannot be negative."
             )
 
 
-        if self.chunk_overlap >= self.chunk_size:
+        if chunk_overlap >= chunk_size:
 
             raise ValueError(
-                "chunk_overlap must be smaller than chunk_size."
+                "chunk_overlap must be smaller "
+                "than chunk_size."
             )
 
 
-    # ========================================================
-    # TEXT → TOKENS
-    # ========================================================
+        self.chunk_size = int(
+            chunk_size
+        )
 
-    def text_to_tokens(
-        self,
-        text
-    ):
+        self.chunk_overlap = int(
+            chunk_overlap
+        )
 
-        return (
-            self.encoding.encode(
-                text
+
+        # ====================================================
+        # RECURSIVE CHARACTER SPLITTER
+        # ====================================================
+
+        self.text_splitter = (
+            RecursiveCharacterTextSplitter(
+
+                chunk_size=
+                    self.chunk_size,
+
+                chunk_overlap=
+                    self.chunk_overlap,
+
+                separators=[
+                    "\n\n",
+                    "\n",
+                    ". ",
+                    " ",
+                    ""
+                ],
+
+                length_function=len,
+
+                is_separator_regex=False
+
             )
         )
 
 
     # ========================================================
-    # TOKENS → TEXT
-    # ========================================================
-
-    def tokens_to_text(
-        self,
-        tokens
-    ):
-
-        return (
-            self.encoding.decode(
-                tokens
-            )
-        )
-
-
-    # ========================================================
-    # TOKEN CHUNKING
+    # CHUNK TEXT
     # ========================================================
 
     def chunk_text(
@@ -119,101 +93,193 @@ class ResumeChunker:
             return []
 
 
-        # ----------------------------------------------------
-        # TEXT → TOKENS
-        # ----------------------------------------------------
+        text = self.clean_text(
+            text
+        )
 
-        tokens = (
-            self.text_to_tokens(
+
+        if not text:
+
+            return []
+
+
+        chunks = (
+            self.text_splitter.split_text(
                 text
             )
         )
 
 
-        if not tokens:
+        # ----------------------------------------------------
+        # REMOVE EMPTY CHUNKS
+        # ----------------------------------------------------
+
+        chunks = [
+
+            chunk.strip()
+
+            for chunk
+            in chunks
+
+            if chunk.strip()
+
+        ]
+
+
+        return chunks
+
+
+    # ========================================================
+    # CLEAN TEXT
+    # ========================================================
+
+    def clean_text(
+        self,
+        text
+    ):
+
+        if not text:
+
+            return ""
+
+
+        # ----------------------------------------------------
+        # NORMALIZE WINDOWS LINE BREAKS
+        # ----------------------------------------------------
+
+        text = text.replace(
+            "\r\n",
+            "\n"
+        )
+
+
+        text = text.replace(
+            "\r",
+            "\n"
+        )
+
+
+        # ----------------------------------------------------
+        # REMOVE EXCESS SPACES
+        # ----------------------------------------------------
+
+        text = re.sub(
+
+            r"[ \t]+",
+
+            " ",
+
+            text
+
+        )
+
+
+        # ----------------------------------------------------
+        # REMOVE EXCESS NEWLINES
+        # ----------------------------------------------------
+
+        text = re.sub(
+
+            r"\n{3,}",
+
+            "\n\n",
+
+            text
+
+        )
+
+
+        return text.strip()
+
+
+    # ========================================================
+    # TEXT → TOKENS
+    #
+    # Used by DocumentProcess for chunk token information.
+    # ========================================================
+
+    def text_to_tokens(
+        self,
+        text
+    ):
+
+        if not text:
 
             return []
 
 
         # ----------------------------------------------------
-        # TOTAL TOKENS
+        # Approximate tokenization
+        #
+        # For exact LLM token counts use TokenCounter.
         # ----------------------------------------------------
 
-        total_tokens = len(
-            tokens
+        tokens = re.findall(
+
+            r"\w+|[^\w\s]",
+
+            text
+
         )
 
 
-        chunks = []
+        return tokens
 
 
-        start = 0
+    # ========================================================
+    # CHUNK WITH METADATA
+    # ========================================================
+
+    def chunk_with_metadata(
+        self,
+        text,
+        file_name=None
+    ):
+
+        chunks = self.chunk_text(
+            text
+        )
 
 
-        # ====================================================
-        # LOOP
-        # ====================================================
+        results = []
 
-        while start < total_tokens:
 
-            # ------------------------------------------------
-            # END
-            # ------------------------------------------------
+        for index, chunk in enumerate(
 
-            end = min(
-                start + self.chunk_size,
-                total_tokens
+            chunks,
+
+            start=1
+
+        ):
+
+            results.append(
+
+                {
+
+                    "chunk_id":
+                        index,
+
+                    "file_name":
+                        file_name,
+
+                    "text":
+                        chunk,
+
+                    "token_count":
+                        len(
+                            self.text_to_tokens(
+                                chunk
+                            )
+                        ),
+
+                    "character_count":
+                        len(
+                            chunk
+                        )
+
+                }
+
             )
 
 
-            # ------------------------------------------------
-            # CHUNK TOKENS
-            # ------------------------------------------------
-
-            chunk_tokens = (
-                tokens[
-                    start:end
-                ]
-            )
-
-
-            # ------------------------------------------------
-            # TOKENS → TEXT
-            # ------------------------------------------------
-
-            chunk_text = (
-                self.tokens_to_text(
-                    chunk_tokens
-                )
-            )
-
-
-            # ------------------------------------------------
-            # STORE
-            # ------------------------------------------------
-
-            chunks.append(
-                chunk_text
-            )
-
-
-            # ------------------------------------------------
-            # LAST CHUNK
-            # ------------------------------------------------
-
-            if end >= total_tokens:
-
-                break
-
-
-            # ------------------------------------------------
-            # NEXT START
-            # ------------------------------------------------
-
-            start = (
-                end
-                - self.chunk_overlap
-            )
-
-
-        return chunks
+        return results

@@ -11,141 +11,148 @@ class ContextManager:
         safety_buffer
     ):
 
-        if context_window is None:
-
-            raise ValueError(
-                "context_window is required."
-            )
-
-
-        if output_tokens is None:
-
-            raise ValueError(
-                "output_tokens is required."
-            )
-
-
-        if safety_buffer is None:
-
-            raise ValueError(
-                "safety_buffer is required."
-            )
-
-
-        self.context_window = (
+        self.context_window = int(
             context_window
         )
 
-        self.output_tokens = (
+        self.output_tokens = int(
             output_tokens
         )
 
-        self.safety_buffer = (
+        self.safety_buffer = int(
             safety_buffer
         )
 
 
     # ========================================================
-    # TOTAL TOKENS
+    # AVAILABLE INPUT TOKENS
     # ========================================================
 
-    def calculate_total_tokens(
-        self,
-        schema_tokens,
-        system_prompt_tokens,
-        user_prompt_tokens
-    ):
+    def available_input_tokens(self):
 
-        return (
+        available = (
 
-            schema_tokens
-
-            + system_prompt_tokens
-
-            + user_prompt_tokens
-
-            + self.output_tokens
-
-            + self.safety_buffer
-
-        )
-
-
-    # ========================================================
-    # AVAILABLE TOKENS
-    # ========================================================
-
-    def calculate_available_tokens(
-        self,
-        total_tokens
-    ):
-
-        available_tokens = (
             self.context_window
-            - total_tokens
+
+            -
+
+            self.output_tokens
+
+            -
+
+            self.safety_buffer
+
         )
 
 
-        if available_tokens < 0:
-
-            available_tokens = 0
-
-
-        return available_tokens
-
-
-    # ========================================================
-    # CONTEXT CHECK
-    # ========================================================
-
-    def check_context_window(
-        self,
-        total_tokens
-    ):
-
-        return (
-            total_tokens
-            <= self.context_window
+        return max(
+            0,
+            available
         )
 
 
     # ========================================================
-    # COMPLETE CALCULATION
+    # CALCULATE
     # ========================================================
 
     def calculate(
         self,
-        schema_tokens,
-        system_prompt_tokens,
-        user_prompt_tokens,
-        job_description_tokens,
-        resume_tokens
+        schema_tokens=0,
+        system_prompt_tokens=0,
+        user_prompt_tokens=0,
+        job_description_tokens=0,
+        resume_tokens=0
     ):
 
-        total_tokens = (
-            self.calculate_total_tokens(
+        fixed_tokens = (
 
-                schema_tokens,
+            schema_tokens
 
-                system_prompt_tokens,
+            +
 
-                user_prompt_tokens
+            system_prompt_tokens
 
-            )
         )
 
 
-        available_tokens = (
-            self.calculate_available_tokens(
-                total_tokens
-            )
+        available_input = (
+            self.available_input_tokens()
         )
 
 
-        fits_context = (
-            self.check_context_window(
-                total_tokens
+        total_input = (
+
+            fixed_tokens
+
+            +
+
+            user_prompt_tokens
+
+        )
+
+
+        remaining_tokens = (
+
+            available_input
+
+            -
+
+            total_input
+
+        )
+
+
+        # ====================================================
+        # CONTEXT USAGE
+        # ====================================================
+
+        total_context_used = (
+
+            fixed_tokens
+
+            +
+
+            user_prompt_tokens
+
+            +
+
+            self.output_tokens
+
+            +
+
+            self.safety_buffer
+
+        )
+
+
+        context_usage_percent = (
+
+            total_context_used
+
+            /
+
+            self.context_window
+
+            *
+
+            100
+
+        )
+
+
+        # ====================================================
+        # RESUME FIT
+        # ====================================================
+
+        resume_fits_directly = (
+
+            resume_tokens
+            <=
+            max(
+                0,
+                remaining_tokens
             )
+
         )
 
 
@@ -153,6 +160,15 @@ class ContextManager:
 
             "context_window":
                 self.context_window,
+
+            "output_tokens":
+                self.output_tokens,
+
+            "safety_buffer":
+                self.safety_buffer,
+
+            "available_input_tokens":
+                available_input,
 
             "schema_tokens":
                 schema_tokens,
@@ -169,19 +185,22 @@ class ContextManager:
             "resume_tokens":
                 resume_tokens,
 
-            "output_tokens":
-                self.output_tokens,
+            "total_context_used":
+                total_context_used,
 
-            "safety_buffer":
-                self.safety_buffer,
+            "remaining_tokens":
+                max(
+                    0,
+                    remaining_tokens
+                ),
 
-            "total_tokens":
-                total_tokens,
+            "context_usage_percent":
+                round(
+                    context_usage_percent,
+                    2
+                ),
 
-            "available_tokens":
-                available_tokens,
-
-            "fits_context":
-                fits_context
+            "resume_fits_directly":
+                resume_fits_directly
 
         }

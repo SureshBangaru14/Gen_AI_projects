@@ -1,13 +1,11 @@
 from pdf2image import convert_from_path
+
 import pytesseract
+
 from pathlib import Path
 
 
 class OCRExtractor:
-
-    # ========================================================
-    # CONSTRUCTOR
-    # ========================================================
 
     def __init__(self):
 
@@ -23,13 +21,10 @@ class OCRExtractor:
         pdf_path
     ):
 
-        images = convert_from_path(
+        return convert_from_path(
             pdf_path,
             dpi=300
         )
-
-
-        return images
 
 
     # ========================================================
@@ -41,16 +36,16 @@ class OCRExtractor:
         image
     ):
 
-        text = pytesseract.image_to_string(
-            image
+        return (
+            pytesseract
+            .image_to_string(
+                image
+            )
         )
 
 
-        return text
-
-
     # ========================================================
-    # PDF → OCR JSON
+    # PDF → OCR
     # ========================================================
 
     def extract_pdf(
@@ -64,10 +59,6 @@ class OCRExtractor:
         )
 
 
-        # ----------------------------------------------------
-        # PDF → IMAGES
-        # ----------------------------------------------------
-
         images = (
             self.pdf_to_images(
                 pdf_path
@@ -75,25 +66,16 @@ class OCRExtractor:
         )
 
 
-        # ----------------------------------------------------
-        # PAGE DATA
-        # ----------------------------------------------------
-
         pages = []
 
 
-        # ----------------------------------------------------
-        # PROCESS EVERY PAGE
-        # ----------------------------------------------------
-
-        for page_number, image in enumerate(
+        for (
+            page_number,
+            image
+        ) in enumerate(
             images,
             start=1
         ):
-
-            # ------------------------------------------------
-            # OCR
-            # ------------------------------------------------
 
             text = (
                 self.image_to_text(
@@ -102,35 +84,22 @@ class OCRExtractor:
             )
 
 
-            # ------------------------------------------------
-            # CLEAN
-            # ------------------------------------------------
-
-            text = (
-                text.strip()
-            )
-
-
-            # ------------------------------------------------
-            # STORE
-            # ------------------------------------------------
-
             pages.append(
+
                 {
 
                     "page_no":
-                        str(page_number),
+                        str(
+                            page_number
+                        ),
 
                     "page_data":
-                        text
+                        text.strip()
 
                 }
+
             )
 
-
-        # ----------------------------------------------------
-        # RETURN
-        # ----------------------------------------------------
 
         return {
 
@@ -141,7 +110,9 @@ class OCRExtractor:
                 "pdf",
 
             "No_pages":
-                str(len(pages)),
+                str(
+                    len(pages)
+                ),
 
             "data":
                 pages

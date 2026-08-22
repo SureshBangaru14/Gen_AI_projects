@@ -9,29 +9,24 @@ class TokenCounter:
 
     def __init__(
         self,
-        model_name
+        model_name="gpt-4o-mini"
     ):
 
         self.model_name = model_name
 
-
-        # ----------------------------------------------------
-        # GET MODEL ENCODING
-        # ----------------------------------------------------
-
         try:
 
-            self.encoding = (
+            self.encoder = (
                 tiktoken.encoding_for_model(
                     model_name
                 )
             )
 
-        except KeyError:
+        except Exception:
 
-            self.encoding = (
+            self.encoder = (
                 tiktoken.get_encoding(
-                    "o200k_base"
+                    "cl100k_base"
                 )
             )
 
@@ -50,45 +45,40 @@ class TokenCounter:
             return 0
 
 
-        tokens = (
-            self.encoding.encode(
+        if not isinstance(
+            text,
+            str
+        ):
+
+            text = str(
                 text
             )
-        )
 
 
         return len(
-            tokens
-        )
 
-
-    # ========================================================
-    # GET TOKENS
-    # ========================================================
-
-    def encode(
-        self,
-        text
-    ):
-
-        return (
-            self.encoding.encode(
+            self.encoder.encode(
                 text
             )
+
         )
 
 
     # ========================================================
-    # DECODE TOKENS
+    # COUNT MULTIPLE TEXTS
     # ========================================================
 
-    def decode(
+    def count_multiple(
         self,
-        tokens
+        texts
     ):
 
-        return (
-            self.encoding.decode(
-                tokens
-            )
-        )
+        return {
+
+            key:
+                self.count_tokens(value)
+
+            for key, value
+            in texts.items()
+
+        }
