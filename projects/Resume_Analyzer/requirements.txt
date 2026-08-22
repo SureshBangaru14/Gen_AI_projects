@@ -1,0 +1,7 @@
+streamlit
+pdf2image
+pytesseract
+Pillow
+python-docx
+openai
+chromadb
