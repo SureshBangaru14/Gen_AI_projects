@@ -1,7 +1,5 @@
 from pdf2image import convert_from_path
-
 import pytesseract
-
 from pathlib import Path
 
 
@@ -70,8 +68,10 @@ class OCRExtractor:
         # PDF → IMAGES
         # ----------------------------------------------------
 
-        images = self.pdf_to_images(
-            pdf_path
+        images = (
+            self.pdf_to_images(
+                pdf_path
+            )
         )
 
 
@@ -95,47 +95,55 @@ class OCRExtractor:
             # OCR
             # ------------------------------------------------
 
-            text = self.image_to_text(
-                image
+            text = (
+                self.image_to_text(
+                    image
+                )
             )
 
 
             # ------------------------------------------------
-            # CLEAN TEXT
+            # CLEAN
             # ------------------------------------------------
 
-            text = text.strip()
+            text = (
+                text.strip()
+            )
 
 
             # ------------------------------------------------
-            # STORE PAGE
+            # STORE
             # ------------------------------------------------
 
             pages.append(
                 {
-                    "page_no": str(
-                        page_number
-                    ),
 
-                    "page_data": text
+                    "page_no":
+                        str(page_number),
+
+                    "page_data":
+                        text
+
                 }
             )
 
 
         # ----------------------------------------------------
-        # RETURN COMPLETE RESULT
+        # RETURN
         # ----------------------------------------------------
 
         return {
 
-            "file_name": original_file_name,
+            "file_name":
+                original_file_name,
 
-            "file_type": "pdf",
+            "file_type":
+                "pdf",
 
-            "No_pages": str(
-                len(pages)
-            ),
+            "No_pages":
+                str(len(pages)),
 
-            "data": pages
+            "data":
+                pages
 
         }

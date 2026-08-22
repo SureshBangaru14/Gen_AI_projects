@@ -21,7 +21,8 @@ st.set_page_config(
 st.title("📄 Resume Analyzer")
 
 st.write(
-    "Resume matching and candidate analysis using OpenAI and ChromaDB."
+    "Resume matching and candidate analysis using "
+    "OpenAI and ChromaDB."
 )
 
 
@@ -33,18 +34,34 @@ with st.sidebar:
 
     st.header("⚙️ Settings")
 
-    # --------------------------------------------------------
+
+    # ========================================================
     # OPENAI API KEY
-    # --------------------------------------------------------
+    # ========================================================
 
     openai_api_key = st.text_input(
         "OpenAI API Key",
-        type="password"
+        type="password",
+        placeholder="sk-..."
     )
 
-    # --------------------------------------------------------
+
+    # ========================================================
+    # GENERATION MODEL
+    # ========================================================
+
+    generation_model = st.selectbox(
+        "Generation Model",
+        [
+            "gpt-4o",
+            "gpt-4o-mini"
+        ]
+    )
+
+
+    # ========================================================
     # EMBEDDING MODEL
-    # --------------------------------------------------------
+    # ========================================================
 
     embedding_model = st.selectbox(
         "Embedding Model",
@@ -54,9 +71,10 @@ with st.sidebar:
         ]
     )
 
-    # --------------------------------------------------------
+
+    # ========================================================
     # TOP K
-    # --------------------------------------------------------
+    # ========================================================
 
     top_k = st.slider(
         "Top Matching Results",
@@ -65,11 +83,15 @@ with st.sidebar:
         value=5
     )
 
-    # --------------------------------------------------------
-    # RESUME UPLOAD
-    # --------------------------------------------------------
 
-    st.subheader("📁 Upload Resumes")
+    # ========================================================
+    # RESUME UPLOAD
+    # ========================================================
+
+    st.subheader(
+        "📁 Upload Resumes"
+    )
+
 
     resume_files = st.file_uploader(
         "Upload Resume PDFs",
@@ -77,13 +99,17 @@ with st.sidebar:
         accept_multiple_files=True
     )
 
-    # --------------------------------------------------------
-    # DISPLAY SELECTED RESUMES
-    # --------------------------------------------------------
+
+    # ========================================================
+    # DISPLAY RESUMES
+    # ========================================================
 
     if resume_files:
 
-        st.write("### Selected Resumes")
+        st.write(
+            "### Selected Resumes"
+        )
+
 
         for resume_file in resume_files:
 
@@ -96,7 +122,9 @@ with st.sidebar:
 # JOB DESCRIPTION
 # ============================================================
 
-st.subheader("📋 Job Description")
+st.subheader(
+    "📋 Job Description"
+)
 
 
 # ============================================================
@@ -115,7 +143,7 @@ jd_input_method = st.radio(
 
 
 # ============================================================
-# INITIALIZE JD VARIABLES
+# INITIALIZE VARIABLES
 # ============================================================
 
 jd_pdf = None
@@ -150,7 +178,7 @@ elif jd_input_method == "Upload DOCX":
 
 
 # ============================================================
-# JD PASTE TEXT
+# JD TEXT
 # ============================================================
 
 elif jd_input_method == "Paste Text":
@@ -178,13 +206,8 @@ if st.button(
     use_container_width=True
 ):
 
-    print(
-        "Backend processing started..."
-    )
-
-
     # ========================================================
-    # VALIDATE OPENAI API KEY
+    # VALIDATE API KEY
     # ========================================================
 
     if not openai_api_key:
@@ -223,6 +246,7 @@ if st.button(
 
             st.stop()
 
+
         jd_file = jd_pdf
 
 
@@ -235,6 +259,7 @@ if st.button(
             )
 
             st.stop()
+
 
         jd_file = jd_docx
 
@@ -249,16 +274,17 @@ if st.button(
 
             st.stop()
 
+
         jd_file = jd_pasted_text
 
 
-    # ========================================================
-    # VALIDATION SUCCESS
-    # ========================================================
+    else:
 
-    st.success(
-        "Input validation successful."
-    )
+        st.error(
+            "Invalid Job Description input method."
+        )
+
+        st.stop()
 
 
     # ========================================================
@@ -266,102 +292,336 @@ if st.button(
     # ========================================================
 
     document_process = DocumentProcess(
+
         resume_files=resume_files,
+
         jd_input_method=jd_input_method,
-        jd_file_name=jd_file
+
+        jd_file_name=jd_file,
+
+        openai_api_key=openai_api_key,
+
+        generation_model=generation_model,
+
+        embedding_model=embedding_model,
+
+        top_k=top_k
+
     )
 
 
     # ========================================================
-    # PROCESS RESUMES
+    # PROCESS
     # ========================================================
 
-    st.info(
-        "Processing Resume PDFs with OCR..."
-    )
+    with st.spinner(
+        "Processing resumes..."
+    ):
 
+        try:
 
-    try:
+            result = (
+                document_process.process()
+            )
 
-        resume_data = (
-            document_process.process_resume()
-        )
+        except Exception as e:
 
-    except Exception as e:
+            st.error(
+                f"Processing failed: {e}"
+            )
 
-        st.error(
-            f"Failed to process resumes: {e}"
-        )
-
-        st.stop()
+            st.stop()
 
 
     # ========================================================
-    # RESUME SUCCESS
+    # SUCCESS
     # ========================================================
 
     st.success(
-        f"{len(resume_files)} resume(s) processed successfully."
+        "Resume processing completed successfully."
     )
 
 
     # ========================================================
-    # DISPLAY OCR DATA
+    # TOKEN INFORMATION
     # ========================================================
 
-    st.subheader(
-        "📄 Extracted Resume OCR Data"
-    )
+    if "token_data" in result:
 
-    st.json(
-        resume_data
-    )
-
-
-    # ========================================================
-    # PROCESS JOB DESCRIPTION
-    # ========================================================
-
-    st.info(
-        "Processing Job Description..."
-    )
-
-
-    try:
-
-        jd_text = (
-            document_process.process_jd()
+        st.subheader(
+            "🧮 Token Information"
         )
 
-    except Exception as e:
 
-        st.error(
-            f"Failed to process Job Description: {e}"
+        token_data = (
+            result["token_data"]
         )
 
-        st.stop()
+
+        # ----------------------------------------------------
+        # SCHEMA
+        # ----------------------------------------------------
+
+        st.write(
+            f"**Schema:** "
+            f"{token_data['schema_tokens']:,} tokens"
+        )
+
+
+        # ----------------------------------------------------
+        # SYSTEM PROMPT
+        # ----------------------------------------------------
+
+        st.write(
+            f"**System Prompt:** "
+            f"{token_data['system_prompt_tokens']:,} tokens"
+        )
+
+
+        # ----------------------------------------------------
+        # JD
+        # ----------------------------------------------------
+
+        st.write(
+            f"**Job Description:** "
+            f"{token_data['job_description_tokens']:,} tokens"
+        )
+
+
+        # ----------------------------------------------------
+        # RESUMES
+        # ----------------------------------------------------
+
+        for file_name, token_count in (
+            token_data["resume_tokens"].items()
+        ):
+
+            st.write(
+                f"**{file_name}:** "
+                f"{token_count:,} tokens"
+            )
+
+
+        # ----------------------------------------------------
+        # USER PROMPTS
+        # ----------------------------------------------------
+
+        st.write(
+            "### User Prompt Tokens"
+        )
+
+
+        for file_name, token_count in (
+            token_data["user_prompt_tokens"].items()
+        ):
+
+            st.write(
+                f"**{file_name}:** "
+                f"{token_count:,} tokens"
+            )
 
 
     # ========================================================
-    # JD SUCCESS
+    # CONTEXT WINDOW
     # ========================================================
 
-    st.success(
-        "Job Description processed successfully."
-    )
+    if "context_data" in result:
+
+        st.subheader(
+            "🧠 Context Window"
+        )
+
+
+        context_data = (
+            result["context_data"]
+        )
+
+
+        for file_name, data in context_data.items():
+
+            with st.expander(
+                f"📄 {file_name}"
+            ):
+
+                col1, col2, col3 = st.columns(3)
+
+
+                with col1:
+
+                    st.metric(
+                        "Context Window",
+                        f"{data['context_window']:,}"
+                    )
+
+
+                with col2:
+
+                    st.metric(
+                        "Total Tokens",
+                        f"{data['total_tokens']:,}"
+                    )
+
+
+                with col3:
+
+                    st.metric(
+                        "Available",
+                        f"{data['available_tokens']:,}"
+                    )
+
+
+                if data["fits_context"]:
+
+                    st.success(
+                        "✅ Fits Context Window"
+                    )
+
+                else:
+
+                    st.warning(
+                        "⚠️ Exceeds Context Window"
+                    )
 
 
     # ========================================================
-    # DISPLAY JD
+    # CHUNKING
     # ========================================================
 
-    st.subheader(
-        "📋 Extracted Job Description"
-    )
+    if "chunk_data" in result:
+
+        st.subheader(
+            "✂️ Dynamic Chunking"
+        )
 
 
-    st.text_area(
-        "Job Description Text",
-        jd_text,
-        height=300
-    )
+        chunk_data = (
+            result["chunk_data"]
+        )
+
+
+        col1, col2, col3, col4 = st.columns(4)
+
+
+        with col1:
+
+            st.metric(
+                "Chunk Size",
+                f"{chunk_data['chunk_size']:,}"
+            )
+
+
+        with col2:
+
+            st.metric(
+                "Chunk Overlap",
+                f"{chunk_data['chunk_overlap']:,}"
+            )
+
+
+        with col3:
+
+            st.metric(
+                "Top K",
+                chunk_data["top_k"]
+            )
+
+
+        with col4:
+
+            st.metric(
+                "Retrieval Budget",
+                f"{chunk_data['retrieval_budget']:,}"
+            )
+
+
+    # ========================================================
+    # RESUME CHUNKS
+    # ========================================================
+
+    if "resume_chunks" in result:
+
+        st.subheader(
+            "📦 Resume Chunks"
+        )
+
+
+        resume_chunks = (
+            result["resume_chunks"]
+        )
+
+
+        for file_name, chunks in resume_chunks.items():
+
+            with st.expander(
+                f"📄 {file_name} "
+                f"({len(chunks)} chunks)"
+            ):
+
+                for chunk in chunks:
+
+                    st.write(
+                        f"### Chunk "
+                        f"{chunk['chunk_id']}"
+                    )
+
+
+                    st.caption(
+                        f"Token Count: "
+                        f"{chunk['token_count']}"
+                    )
+
+
+                    st.text_area(
+                        "Chunk Text",
+                        chunk["text"],
+                        height=150,
+                        key=(
+                            f"{file_name}_"
+                            f"{chunk['chunk_id']}"
+                        )
+                    )
+
+
+    # ========================================================
+    # FULL RESUME TEXT
+    # ========================================================
+
+    if "resume_text" in result:
+
+        st.subheader(
+            "📝 Full Resume Text"
+        )
+
+
+        for file_name, resume_text in (
+            result["resume_text"].items()
+        ):
+
+            with st.expander(
+                f"📄 {file_name}"
+            ):
+
+                st.text_area(
+                    "Resume Text",
+                    resume_text,
+                    height=300,
+                    key=f"full_{file_name}"
+                )
+
+
+    # ========================================================
+    # JOB DESCRIPTION
+    # ========================================================
+
+    if "job_description" in result:
+
+        st.subheader(
+            "📋 Extracted Job Description"
+        )
+
+
+        st.text_area(
+            "Job Description",
+            result["job_description"],
+            height=300
+        )

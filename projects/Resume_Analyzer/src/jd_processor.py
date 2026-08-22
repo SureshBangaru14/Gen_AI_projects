@@ -1,9 +1,10 @@
-from docx import Document
-
 import tempfile
 import os
 
-from src.ocr_extractor import OCRExtractor
+from pdf2image import convert_from_path
+import pytesseract
+
+from docx import Document
 
 
 class JDProcessor:
@@ -20,13 +21,21 @@ class JDProcessor:
         pasted_text=None
     ):
 
-        self.input_method = input_method
+        self.input_method = (
+            input_method
+        )
 
-        self.pdf_file = pdf_file
+        self.pdf_file = (
+            pdf_file
+        )
 
-        self.docx_file = docx_file
+        self.docx_file = (
+            docx_file
+        )
 
-        self.pasted_text = pasted_text
+        self.pasted_text = (
+            pasted_text
+        )
 
 
     # ========================================================
@@ -35,36 +44,26 @@ class JDProcessor:
 
     def process(self):
 
-        # ----------------------------------------------------
-        # PDF
-        # ----------------------------------------------------
-
         if self.input_method == "Upload PDF":
 
-            return self.process_pdf()
+            return (
+                self.process_pdf()
+            )
 
-
-        # ----------------------------------------------------
-        # DOCX
-        # ----------------------------------------------------
 
         elif self.input_method == "Upload DOCX":
 
-            return self.process_docx()
+            return (
+                self.process_docx()
+            )
 
-
-        # ----------------------------------------------------
-        # PASTE TEXT
-        # ----------------------------------------------------
 
         elif self.input_method == "Paste Text":
 
-            return self.process_text()
+            return (
+                self.process_pasted_text()
+            )
 
-
-        # ----------------------------------------------------
-        # INVALID
-        # ----------------------------------------------------
 
         raise ValueError(
             "Invalid Job Description input method."
@@ -72,25 +71,13 @@ class JDProcessor:
 
 
     # ========================================================
-    # PROCESS JD PDF
+    # PROCESS PDF
     # ========================================================
 
     def process_pdf(self):
 
-        if self.pdf_file is None:
-
-            raise ValueError(
-                "Job Description PDF is missing."
-            )
-
-
         file_bytes = (
             self.pdf_file.getvalue()
-        )
-
-
-        original_file_name = (
-            self.pdf_file.name
         )
 
 
@@ -98,10 +85,6 @@ class JDProcessor:
 
 
         try:
-
-            # ------------------------------------------------
-            # CREATE TEMPORARY PDF
-            # ------------------------------------------------
 
             with tempfile.NamedTemporaryFile(
                 delete=False,
@@ -117,55 +100,44 @@ class JDProcessor:
                 )
 
 
-            # ------------------------------------------------
-            # OCR
-            # ------------------------------------------------
-
-            jd_data = OCRExtractor().extract_pdf(
-                temp_pdf_path,
-                original_file_name
+            images = (
+                convert_from_path(
+                    temp_pdf_path,
+                    dpi=300
+                )
             )
 
-
-            # ------------------------------------------------
-            # COMBINE PAGE TEXT
-            # ------------------------------------------------
 
             page_texts = []
 
 
-            for page in jd_data["data"]:
+            for image in images:
 
-                page_text = (
-                    page["page_data"]
-                    .strip()
+                text = (
+                    pytesseract.image_to_string(
+                        image
+                    )
                 )
 
 
-                if page_text:
+                text = (
+                    text.strip()
+                )
+
+
+                if text:
 
                     page_texts.append(
-                        page_text
+                        text
                     )
 
 
-            # ------------------------------------------------
-            # FULL JD TEXT
-            # ------------------------------------------------
-
-            jd_text = "\n\n".join(
+            return "\n\n".join(
                 page_texts
             )
 
 
-            return jd_text
-
-
         finally:
-
-            # ------------------------------------------------
-            # DELETE TEMP FILE
-            # ------------------------------------------------
 
             if (
                 temp_pdf_path
@@ -180,17 +152,10 @@ class JDProcessor:
 
 
     # ========================================================
-    # PROCESS JD DOCX
+    # PROCESS DOCX
     # ========================================================
 
     def process_docx(self):
-
-        if self.docx_file is None:
-
-            raise ValueError(
-                "Job Description DOCX is missing."
-            )
-
 
         file_bytes = (
             self.docx_file.getvalue()
@@ -201,10 +166,6 @@ class JDProcessor:
 
 
         try:
-
-            # ------------------------------------------------
-            # CREATE TEMPORARY DOCX
-            # ------------------------------------------------
 
             with tempfile.NamedTemporaryFile(
                 delete=False,
@@ -220,10 +181,6 @@ class JDProcessor:
                 )
 
 
-            # ------------------------------------------------
-            # OPEN DOCX
-            # ------------------------------------------------
-
             document = Document(
                 temp_docx_path
             )
@@ -232,15 +189,10 @@ class JDProcessor:
             paragraphs = []
 
 
-            # ------------------------------------------------
-            # EXTRACT PARAGRAPHS
-            # ------------------------------------------------
-
             for paragraph in document.paragraphs:
 
                 text = (
-                    paragraph.text
-                    .strip()
+                    paragraph.text.strip()
                 )
 
 
@@ -251,23 +203,12 @@ class JDProcessor:
                     )
 
 
-            # ------------------------------------------------
-            # COMBINE TEXT
-            # ------------------------------------------------
-
-            jd_text = "\n\n".join(
+            return "\n\n".join(
                 paragraphs
             )
 
 
-            return jd_text
-
-
         finally:
-
-            # ------------------------------------------------
-            # DELETE TEMP FILE
-            # ------------------------------------------------
 
             if (
                 temp_docx_path
@@ -282,29 +223,16 @@ class JDProcessor:
 
 
     # ========================================================
-    # PROCESS PASTED JD TEXT
+    # PROCESS PASTED TEXT
     # ========================================================
 
-    def process_text(self):
+    def process_pasted_text(self):
 
-        if self.pasted_text is None:
+        if not self.pasted_text:
 
-            raise ValueError(
-                "Job Description text is missing."
-            )
+            return ""
 
 
-        jd_text = (
-            self.pasted_text
-            .strip()
+        return (
+            self.pasted_text.strip()
         )
-
-
-        if not jd_text:
-
-            raise ValueError(
-                "Job Description text is empty."
-            )
-
-
-        return jd_text
