@@ -1,4 +1,6 @@
+# ============================================================
 # document_process.py
+# ============================================================
 
 import os
 import tempfile
@@ -25,6 +27,7 @@ from src.prompts import PromptBuilder
 
 from src.candidate_analyzer import CandidateAnalyzer
 from src.score_calculator import ScoreCalculator
+
 from src.result_formatter import ResultFormatter
 
 
@@ -78,7 +81,9 @@ class DocumentProcess:
 
         self.similarity_method = similarity_method
 
-        self.top_k = int(top_k)
+        self.top_k = int(
+            top_k
+        )
 
         self.output_tokens = output_tokens
 
@@ -110,7 +115,9 @@ class DocumentProcess:
         # PROMPTS
         # ----------------------------------------------------
 
-        self.prompt_builder = PromptBuilder()
+        self.prompt_builder = (
+            PromptBuilder()
+        )
 
         # ----------------------------------------------------
         # MODEL CONFIG
@@ -123,7 +130,9 @@ class DocumentProcess:
         )
 
         self.context_window = int(
-            model_config["context_window"]
+            model_config[
+                "context_window"
+            ]
         )
 
         if self.output_tokens is None:
@@ -142,7 +151,6 @@ class DocumentProcess:
             self.calculate_safety_buffer()
         )
 
-
     # ========================================================
     # MAIN PROCESS
     # ========================================================
@@ -152,7 +160,7 @@ class DocumentProcess:
         self.validate_configuration()
 
         # ----------------------------------------------------
-        # 1. Resume OCR
+        # 1. RESUME OCR
         # ----------------------------------------------------
 
         resume_data = (
@@ -160,7 +168,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 2. Page 1 + Page 2 + Page 3
+        # 2. FULL RESUME TEXT
         # ----------------------------------------------------
 
         resume_text_map = (
@@ -170,7 +178,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 3. JD
+        # 3. JOB DESCRIPTION
         # ----------------------------------------------------
 
         jd_text = (
@@ -178,7 +186,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 4. Token calculation
+        # 4. TOKEN CALCULATION
         # ----------------------------------------------------
 
         token_data = (
@@ -189,7 +197,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 5. Context calculation
+        # 5. CONTEXT
         # ----------------------------------------------------
 
         context_data = (
@@ -199,7 +207,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 6. Dynamic chunking
+        # 6. CHUNKING
         # ----------------------------------------------------
 
         chunk_data = (
@@ -209,7 +217,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 7. Resume chunks
+        # 7. RESUME CHUNKS
         # ----------------------------------------------------
 
         resume_chunks = (
@@ -220,7 +228,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 8. Embeddings + ChromaDB
+        # 8. EMBEDDINGS + CHROMA
         # ----------------------------------------------------
 
         vector_data = (
@@ -230,7 +238,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # 9. Retrieval + Analysis + Scoring
+        # 9. RETRIEVAL + ANALYSIS + SCORING
         # ----------------------------------------------------
 
         matching_results = (
@@ -243,7 +251,7 @@ class DocumentProcess:
         )
 
         # ----------------------------------------------------
-        # FINAL RESULT
+        # FINAL
         # ----------------------------------------------------
 
         return {
@@ -274,9 +282,7 @@ class DocumentProcess:
 
             "matching_results":
                 matching_results
-
         }
-
 
     # ========================================================
     # VALIDATION
@@ -302,7 +308,15 @@ class DocumentProcess:
                 "Top-K must be at least 1."
             )
 
-        if self.safety_buffer_method == "Percentage":
+        # ----------------------------------------------------
+        # BUFFER
+        # ----------------------------------------------------
+
+        if (
+            self.safety_buffer_method
+            ==
+            "Percentage"
+        ):
 
             allowed = [
                 10,
@@ -313,14 +327,66 @@ class DocumentProcess:
                 60
             ]
 
-            if self.safety_buffer_percent not in allowed:
+            if (
+                self.safety_buffer_percent
+                not in allowed
+            ):
 
                 raise ValueError(
                     "Safety buffer must be "
                     "10%, 20%, 30%, 40%, 50%, or 60%."
                 )
 
-        if self.embedding_method == "OpenAI Embeddings":
+        elif (
+            self.safety_buffer_method
+            ==
+            "Fixed Tokens"
+        ):
+
+            if self.fixed_safety_buffer is None:
+
+                raise ValueError(
+                    "Fixed safety buffer is required."
+                )
+
+        elif (
+            self.safety_buffer_method
+            ==
+            "Hybrid"
+        ):
+
+            if (
+                self.safety_buffer_percent
+                not in [
+                    10,
+                    20,
+                    30,
+                    40,
+                    50,
+                    60
+                ]
+            ):
+
+                raise ValueError(
+                    "Hybrid safety buffer must be "
+                    "10%, 20%, 30%, 40%, 50%, or 60%."
+                )
+
+        else:
+
+            raise ValueError(
+                "Invalid safety buffer method."
+            )
+
+        # ----------------------------------------------------
+        # OPENAI
+        # ----------------------------------------------------
+
+        if (
+            self.embedding_method
+            ==
+            "OpenAI Embeddings"
+        ):
 
             if not self.openai_api_key:
 
@@ -329,51 +395,65 @@ class DocumentProcess:
                     "for OpenAI embeddings."
                 )
 
-
     # ========================================================
     # SAFETY BUFFER
     # ========================================================
 
     def calculate_safety_buffer(self):
 
-        if self.safety_buffer_method == "Percentage":
+        if (
+            self.safety_buffer_method
+            ==
+            "Percentage"
+        ):
 
             return int(
+
                 self.context_window
                 *
                 self.safety_buffer_percent
                 /
                 100
+
             )
 
-        if self.safety_buffer_method == "Fixed Tokens":
-
-            if self.fixed_safety_buffer is None:
-
-                raise ValueError(
-                    "Fixed safety buffer is required."
-                )
+        if (
+            self.safety_buffer_method
+            ==
+            "Fixed Tokens"
+        ):
 
             return int(
                 self.fixed_safety_buffer
             )
 
-        if self.safety_buffer_method == "Hybrid":
+        if (
+            self.safety_buffer_method
+            ==
+            "Hybrid"
+        ):
 
             percentage_buffer = int(
+
                 self.context_window
                 *
                 self.safety_buffer_percent
                 /
                 100
+
             )
 
-            if self.maximum_safety_buffer is None:
+            if (
+                self.maximum_safety_buffer
+                is None
+            ):
 
                 return percentage_buffer
 
             return min(
+
                 percentage_buffer,
+
                 int(
                     self.maximum_safety_buffer
                 )
@@ -382,7 +462,6 @@ class DocumentProcess:
         raise ValueError(
             "Invalid safety buffer method."
         )
-
 
     # ========================================================
     # PROCESS RESUMES
@@ -403,7 +482,9 @@ class DocumentProcess:
                 )
 
                 file_name = (
-                    resume_data["file_name"]
+                    resume_data[
+                        "file_name"
+                    ]
                 )
 
                 resume_data_map[
@@ -413,15 +494,17 @@ class DocumentProcess:
             except Exception as error:
 
                 raise RuntimeError(
+
                     f"Failed to process "
-                    f"{resume_file.name}: {error}"
+                    f"{resume_file.name}: "
+                    f"{error}"
+
                 ) from error
 
         return resume_data_map
 
-
     # ========================================================
-    # SINGLE RESUME OCR
+    # SINGLE RESUME
     # ========================================================
 
     def process_resume_pdf(
@@ -457,7 +540,9 @@ class DocumentProcess:
             extractor = OCRExtractor()
 
             return extractor.extract_pdf(
+
                 temp_pdf_path,
+
                 original_file_name
             )
 
@@ -471,13 +556,18 @@ class DocumentProcess:
                 )
             ):
 
-                os.remove(
-                    temp_pdf_path
-                )
+                try:
 
+                    os.remove(
+                        temp_pdf_path
+                    )
+
+                except Exception:
+
+                    pass
 
     # ========================================================
-    # PAGE DATA → FULL TEXT
+    # FULL RESUME TEXT
     # ========================================================
 
     def get_full_resume_text(
@@ -507,9 +597,8 @@ class DocumentProcess:
             page_texts
         )
 
-
     # ========================================================
-    # ALL RESUME TEXT
+    # RESUME TEXT MAP
     # ========================================================
 
     def process_resume_text(
@@ -524,14 +613,22 @@ class DocumentProcess:
             resume_data
         ) in resume_data_map.items():
 
-            resume_text_map[
-                file_name
-            ] = self.get_full_resume_text(
-                resume_data
+            full_text = (
+                self.get_full_resume_text(
+                    resume_data
+                )
             )
 
-        return resume_text_map
+            # Preserve complete resume
+            resume_data[
+                "full_text"
+            ] = full_text
 
+            resume_text_map[
+                file_name
+            ] = full_text
+
+        return resume_text_map
 
     # ========================================================
     # JOB DESCRIPTION
@@ -539,38 +636,98 @@ class DocumentProcess:
 
     def process_jd(self):
 
-        if self.jd_input_method == "Upload PDF":
+        # ----------------------------------------------------
+        # PDF
+        # ----------------------------------------------------
+
+        if (
+            self.jd_input_method
+            ==
+            "Upload PDF"
+        ):
 
             processor = JDProcessor(
-                input_method="Upload PDF",
-                pdf_file=self.jd_file_name
+
+                input_method=
+                    "Upload PDF",
+
+                pdf_file=
+                    self.jd_file_name
             )
 
             return processor.process()
 
-        if self.jd_input_method == "Upload DOCX":
+        # ----------------------------------------------------
+        # DOCX
+        # ----------------------------------------------------
+
+        if (
+            self.jd_input_method
+            ==
+            "Upload DOCX"
+        ):
 
             processor = JDProcessor(
-                input_method="Upload DOCX",
-                docx_file=self.jd_file_name
+
+                input_method=
+                    "Upload DOCX",
+
+                docx_file=
+                    self.jd_file_name
             )
 
             return processor.process()
 
-        if self.jd_input_method == "Paste Text":
+        # ----------------------------------------------------
+        # TXT
+        # ----------------------------------------------------
+
+        if (
+            self.jd_input_method
+            ==
+            "Upload TXT"
+        ):
 
             processor = JDProcessor(
-                input_method="Paste Text",
-                pasted_text=self.jd_file_name
+
+                input_method=
+                    "Upload TXT",
+
+                txt_file=
+                    self.jd_file_name
+            )
+
+            return processor.process()
+
+        # ----------------------------------------------------
+        # PASTE
+        # ----------------------------------------------------
+
+        if (
+            self.jd_input_method
+            ==
+            "Paste Text"
+        ):
+
+            processor = JDProcessor(
+
+                input_method=
+                    "Paste Text",
+
+                pasted_text=
+                    self.jd_file_name
             )
 
             return processor.process()
 
         raise ValueError(
-            f"Unsupported JD method: "
-            f"{self.jd_input_method}"
-        )
 
+            "Unsupported JD method: "
+            +
+            str(
+                self.jd_input_method
+            )
+        )
 
     # ========================================================
     # TOKEN CALCULATION
@@ -627,8 +784,12 @@ class DocumentProcess:
 
             prompt_data = (
                 self.prompt_builder.build(
-                    job_description=jd_text,
-                    resume_text=resume_text
+
+                    job_description=
+                        jd_text,
+
+                    resume_text=
+                        resume_text
                 )
             )
 
@@ -673,9 +834,7 @@ class DocumentProcess:
 
             "prompt_data":
                 prompt_data_map
-
         }
-
 
     # ========================================================
     # CONTEXT
@@ -687,9 +846,15 @@ class DocumentProcess:
     ):
 
         manager = ContextManager(
-            context_window=self.context_window,
-            output_tokens=self.output_tokens,
-            safety_buffer=self.safety_buffer
+
+            context_window=
+                self.context_window,
+
+            output_tokens=
+                self.output_tokens,
+
+            safety_buffer=
+                self.safety_buffer
         )
 
         context_data = {}
@@ -731,7 +896,6 @@ class DocumentProcess:
 
         return context_data
 
-
     # ========================================================
     # DYNAMIC CHUNKING
     # ========================================================
@@ -751,11 +915,14 @@ class DocumentProcess:
         )
 
         user_prompt_instruction = (
+
             user_prompt_template
+
             .replace(
                 "{job_description}",
                 ""
             )
+
             .replace(
                 "{resume_text}",
                 ""
@@ -787,7 +954,6 @@ class DocumentProcess:
             minimum_chunk_size=100,
 
             overlap_percentage=15
-
         )
 
         chunk_data = manager.calculate(
@@ -809,7 +975,6 @@ class DocumentProcess:
                 token_data[
                     "job_description_tokens"
                 ]
-
         )
 
         chunk_data[
@@ -838,7 +1003,6 @@ class DocumentProcess:
 
         return chunk_data
 
-
     # ========================================================
     # CHUNK RESUMES
     # ========================================================
@@ -851,14 +1015,19 @@ class DocumentProcess:
 
         chunker = ResumeChunker(
 
-            chunk_size=int(
-                chunk_data["chunk_size"]
-            ),
+            chunk_size=
+                int(
+                    chunk_data[
+                        "chunk_size"
+                    ]
+                ),
 
-            chunk_overlap=int(
-                chunk_data["chunk_overlap"]
-            )
-
+            chunk_overlap=
+                int(
+                    chunk_data[
+                        "chunk_overlap"
+                    ]
+                )
         )
 
         resume_chunks = {}
@@ -885,6 +1054,7 @@ class DocumentProcess:
             ):
 
                 if not chunk_text.strip():
+
                     continue
 
                 resume_chunks[
@@ -904,11 +1074,9 @@ class DocumentProcess:
                         len(
                             chunk_text
                         )
-
                 })
 
         return resume_chunks
-
 
     # ========================================================
     # VECTOR DATABASE
@@ -930,12 +1098,13 @@ class DocumentProcess:
 
                 model_name=
                     self.embedding_model
-
             )
         )
 
         documents = []
+
         metadatas = []
+
         ids = []
 
         for (
@@ -956,14 +1125,30 @@ class DocumentProcess:
 
                     "chunk_id":
                         str(
-                            chunk["chunk_id"]
+                            chunk[
+                                "chunk_id"
+                            ]
                         )
-
                 })
 
                 safe_name = (
+
                     file_name
-                    .replace(" ", "_")
+
+                    .replace(
+                        " ",
+                        "_"
+                    )
+
+                    .replace(
+                        "/",
+                        "_"
+                    )
+
+                    .replace(
+                        "\\",
+                        "_"
+                    )
                 )
 
                 ids.append(
@@ -980,6 +1165,10 @@ class DocumentProcess:
                 "No resume chunks were created."
             )
 
+        # ----------------------------------------------------
+        # SPARSE MODELS
+        # ----------------------------------------------------
+
         if hasattr(
             embedding_manager,
             "fit"
@@ -989,12 +1178,20 @@ class DocumentProcess:
                 documents
             )
 
+        # ----------------------------------------------------
+        # EMBEDDINGS
+        # ----------------------------------------------------
+
         embeddings = (
             embedding_manager
             .embed_documents(
                 documents
             )
         )
+
+        # ----------------------------------------------------
+        # CHROMA
+        # ----------------------------------------------------
 
         chroma_db = ChromaDBManager(
 
@@ -1003,22 +1200,38 @@ class DocumentProcess:
 
             collection_name=
                 self.chroma_collection_name
-
         )
 
         chroma_db.clear()
 
         chroma_db.add_documents(
 
-            documents=documents,
+            documents=
+                documents,
 
-            embeddings=embeddings,
+            embeddings=
+                embeddings,
 
-            metadatas=metadatas,
+            metadatas=
+                metadatas,
 
-            ids=ids
-
+            ids=
+                ids
         )
+
+        embedding_dimension = 0
+
+        if embeddings:
+
+            try:
+
+                embedding_dimension = len(
+                    embeddings[0]
+                )
+
+            except Exception:
+
+                pass
 
         return {
 
@@ -1035,15 +1248,13 @@ class DocumentProcess:
                 ids,
 
             "embedding_dimension":
-                len(
-                    embeddings[0]
-                ),
+                embedding_dimension,
 
             "total_chunks":
-                len(documents)
-
+                len(
+                    documents
+                )
         }
-
 
     # ========================================================
     # SEARCH + ANALYSIS + SCORE
@@ -1056,6 +1267,10 @@ class DocumentProcess:
         resume_chunks,
         vector_data
     ):
+
+        # ----------------------------------------------------
+        # RETRIEVAL ENGINE
+        # ----------------------------------------------------
 
         retrieval_engine = RetrievalEngine(
 
@@ -1079,39 +1294,75 @@ class DocumentProcess:
 
             chroma_collection_name=
                 self.chroma_collection_name
-
         )
+
+        # ----------------------------------------------------
+        # RETRIEVE
+        # ----------------------------------------------------
 
         retrieval_results = (
             retrieval_engine.search(
-                jd_text=jd_text,
-                resume_chunks=resume_chunks,
-                vector_data=vector_data
+
+                jd_text=
+                    jd_text,
+
+                resume_chunks=
+                    resume_chunks,
+
+                vector_data=
+                    vector_data
             )
         )
 
-        candidate_analyzer = CandidateAnalyzer(
-
-            api_key=
-                self.openai_api_key,
-
-            model_name=
-                self.generation_model,
-
-            prompt_builder=
-                self.prompt_builder
-
-        )
+        # ----------------------------------------------------
+        # SCORE CALCULATOR
+        # ----------------------------------------------------
 
         score_calculator = (
             ScoreCalculator()
         )
+
+        # ----------------------------------------------------
+        # CANDIDATE ANALYZER
+        #
+        # FIXED:
+        #
+        # OLD:
+        # api_key=
+        # model_name=
+        # prompt_builder=
+        #
+        # NEW:
+        # openai_api_key=
+        # model=
+        # score_calculator=
+        # ----------------------------------------------------
+
+        candidate_analyzer = CandidateAnalyzer(
+
+            openai_api_key=
+                self.openai_api_key,
+
+            model=
+                self.generation_model,
+
+            score_calculator=
+                score_calculator
+        )
+
+        # ----------------------------------------------------
+        # FORMATTER
+        # ----------------------------------------------------
 
         formatter = (
             ResultFormatter()
         )
 
         final_results = []
+
+        # ====================================================
+        # EACH RETRIEVED RESUME
+        # ====================================================
 
         for retrieval_result in retrieval_results:
 
@@ -1122,7 +1373,12 @@ class DocumentProcess:
             )
 
             if not file_name:
+
                 continue
+
+            # ------------------------------------------------
+            # COMPLETE RESUME
+            # ------------------------------------------------
 
             resume_text = (
                 resume_text_map.get(
@@ -1132,7 +1388,97 @@ class DocumentProcess:
             )
 
             if not resume_text:
+
                 continue
+
+            # ------------------------------------------------
+            # RETRIEVAL SCORE
+            # ------------------------------------------------
+
+            retrieval_score = (
+                retrieval_result.get(
+                    "score",
+
+                    retrieval_result.get(
+                        "retrieval_score",
+                        0.0
+                    )
+                )
+            )
+
+            # ------------------------------------------------
+            # CANDIDATE ANALYSIS
+            #
+            # FIXED SIGNATURE
+            # ------------------------------------------------
+
+            analysis = (
+                candidate_analyzer.analyze(
+
+                    resume_text=
+                        resume_text,
+
+                    jd_text=
+                        jd_text,
+
+                    retrieval_score=
+                        retrieval_score,
+
+                    file_name=
+                        file_name,
+
+                    candidate_name=
+                        retrieval_result.get(
+                            "candidate_name"
+                        )
+                )
+            )
+
+            # ------------------------------------------------
+            # IMPORTANT
+            #
+            # CandidateAnalyzer already calculates the
+            # REAL Match % using ScoreCalculator.
+            #
+            # We DO NOT calculate:
+            #
+            # retrieval_score * 100
+            #
+            # ------------------------------------------------
+
+            final_match_percentage = (
+                analysis.get(
+                    "match_percentage",
+                    0.0
+                )
+            )
+
+            try:
+
+                final_match_percentage = float(
+                    final_match_percentage
+                )
+
+            except (
+                TypeError,
+                ValueError
+            ):
+
+                final_match_percentage = 0.0
+
+            final_match_percentage = max(
+
+                0.0,
+
+                min(
+                    100.0,
+                    final_match_percentage
+                )
+            )
+
+            # ------------------------------------------------
+            # RETRIEVED CHUNKS
+            # ------------------------------------------------
 
             retrieved_chunks = (
                 retrieval_result.get(
@@ -1141,101 +1487,31 @@ class DocumentProcess:
                 )
             )
 
-            analysis = (
-                candidate_analyzer.analyze(
+            # ------------------------------------------------
+            # FINAL RESULT
+            # ------------------------------------------------
 
-                    job_description=
-                        jd_text,
-
-                    resume_text=
-                        resume_text,
-
-                    retrieved_chunks=
-                        retrieved_chunks
-
-                )
-            )
-
-            retrieval_score = (
-                retrieval_result.get(
-                    "score"
-                )
-            )
-
-            score_result = (
-                score_calculator.calculate(
-
-                    required_skills=
-                        analysis[
-                            "required_skills"
-                        ],
-
-                    candidate_skills=
-                        analysis[
-                            "candidate_skills"
-                        ],
-
-                    required_years=
-                        analysis[
-                            "required_years"
-                        ],
-
-                    candidate_years=
-                        analysis[
-                            "candidate_years"
-                        ],
-
-                    required_responsibilities=
-                        analysis[
-                            "required_responsibilities"
-                        ],
-
-                    candidate_responsibilities=
-                        analysis[
-                            "candidate_responsibilities"
-                        ],
-
-                    required_education=
-                        analysis[
-                            "required_education"
-                        ],
-
-                    candidate_education=
-                        analysis[
-                            "candidate_education"
-                        ],
-
-                    project_text=
-                        "\n".join(
-                            analysis[
-                                "relevant_projects"
-                            ]
-                        ),
-
-                    retrieval_score=
-                        retrieval_score,
-
-                    retrieval_method=
-                        self.similarity_method
-
-                )
-            )
-
-            final_results.append({
+            final_result = {
 
                 "file_name":
                     file_name,
 
                 "candidate_name":
-                    analysis[
-                        "candidate_name"
-                    ],
+                    analysis.get(
+                        "candidate_name",
+                        os.path.splitext(
+                            file_name
+                        )[0]
+                    ),
 
+                # REAL MATCH %
                 "match_percentage":
-                    score_result[
-                        "overall_match_percentage"
-                    ],
+                    round(
+                        final_match_percentage,
+                        2
+                    ),
 
+                # KEEP SEPARATE
                 "retrieval_score":
                     retrieval_score,
 
@@ -1243,13 +1519,191 @@ class DocumentProcess:
                     self.similarity_method,
 
                 "component_scores":
-                    score_result[
-                        "component_scores"
-                    ],
+                    analysis.get(
+                        "component_scores",
+                        {}
+                    ),
 
-                **analysis
+                "required_skills":
+                    analysis.get(
+                        "required_skills",
+                        []
+                    ),
 
-            })
+                "candidate_skills":
+                    analysis.get(
+                        "candidate_skills",
+                        []
+                    ),
+
+                "matched_required_skills":
+                    analysis.get(
+                        "matched_required_skills",
+                        []
+                    ),
+
+                "missing_required_skills":
+                    analysis.get(
+                        "missing_required_skills",
+                        []
+                    ),
+
+                "additional_candidate_skills":
+                    analysis.get(
+                        "additional_candidate_skills",
+                        []
+                    ),
+
+                "matched_skills":
+                    analysis.get(
+                        "matched_skills",
+                        []
+                    ),
+
+                "missing_skills":
+                    analysis.get(
+                        "missing_skills",
+                        []
+                    ),
+
+                "required_years":
+                    analysis.get(
+                        "required_years"
+                    ),
+
+                "candidate_years":
+                    analysis.get(
+                        "candidate_years"
+                    ),
+
+                "required_responsibilities":
+                    analysis.get(
+                        "required_responsibilities",
+                        []
+                    ),
+
+                "candidate_responsibilities":
+                    analysis.get(
+                        "candidate_responsibilities",
+                        []
+                    ),
+
+                "responsibility_match":
+                    analysis.get(
+                        "responsibility_match",
+                        0
+                    ),
+
+                "required_education":
+                    analysis.get(
+                        "required_education"
+                    ),
+
+                "candidate_education":
+                    analysis.get(
+                        "candidate_education"
+                    ),
+
+                "relevant_projects":
+                    analysis.get(
+                        "relevant_projects",
+                        []
+                    ),
+
+                "strengths":
+                    analysis.get(
+                        "strengths",
+                        []
+                    ),
+
+                "skill_gaps":
+                    analysis.get(
+                        "skill_gaps",
+                        []
+                    ),
+
+                "recommendations":
+                    analysis.get(
+                        "recommendations",
+                        []
+                    ),
+
+                "summary":
+                    analysis.get(
+                        "summary",
+                        ""
+                    ),
+
+                "retrieved_chunks":
+                    retrieved_chunks
+            }
+
+            # ------------------------------------------------
+            # ADD RAW ANALYSIS
+            # ------------------------------------------------
+
+            final_result.update(
+                analysis
+            )
+
+            # ------------------------------------------------
+            # PROTECT IMPORTANT VALUES
+            # ------------------------------------------------
+
+            final_result[
+                "match_percentage"
+            ] = round(
+                final_match_percentage,
+                2
+            )
+
+            final_result[
+                "retrieval_score"
+            ] = retrieval_score
+
+            final_result[
+                "retrieval_method"
+            ] = self.similarity_method
+
+            final_results.append(
+                final_result
+            )
+
+        # ====================================================
+        # SORT BY REAL MATCH %
+        # ====================================================
+
+        final_results.sort(
+
+            key=lambda item: float(
+                item.get(
+                    "match_percentage",
+                    0
+                )
+            ),
+
+            reverse=True
+        )
+
+        # ====================================================
+        # RANK
+        # ====================================================
+
+        for (
+            rank,
+            result
+        ) in enumerate(
+            final_results,
+            start=1
+        ):
+
+            result[
+                "rank"
+            ] = rank
+
+        # ====================================================
+        # FORMAT
+        # ====================================================
 
         return formatter.format_results(
             final_results

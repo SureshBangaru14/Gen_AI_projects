@@ -1,5 +1,13 @@
+# ============================================================
+# src/candidate_analyzer.py
+# ============================================================
+
 import json
 import re
+
+from typing import Any, Dict, List, Optional
+
+from src.score_calculator import ScoreCalculator
 
 
 class CandidateAnalyzer:
@@ -10,103 +18,466 @@ class CandidateAnalyzer:
 
     def __init__(
         self,
-        api_key,
-        model_name="gpt-4o-mini",
-        prompt_builder=None
+        openai_api_key=None,
+        model="gpt-4o-mini",
+        score_calculator=None
     ):
 
-        if not api_key:
-
-            raise ValueError(
-                "OpenAI API key is required "
-                "for CandidateAnalyzer."
-            )
-
-
-        from openai import OpenAI
-
-
-        self.client = OpenAI(
-            api_key=api_key
+        self.openai_api_key = (
+            openai_api_key
         )
 
+        self.model = model
 
-        self.model_name = model_name
-
-        self.prompt_builder = (
-            prompt_builder
+        self.score_calculator = (
+            score_calculator
+            or
+            ScoreCalculator()
         )
 
+        self.client = None
+
+        # ----------------------------------------------------
+        # OpenAI
+        # ----------------------------------------------------
+
+        if self.openai_api_key:
+
+            try:
+
+                from openai import OpenAI
+
+                self.client = OpenAI(
+                    api_key=
+                        self.openai_api_key
+                )
+
+            except Exception:
+
+                self.client = None
 
     # ========================================================
-    # ANALYZE CANDIDATE
+    # MAIN ANALYZE
     # ========================================================
 
     def analyze(
         self,
-        job_description,
         resume_text,
-        retrieved_chunks=None
+        jd_text,
+        retrieval_score=None,
+        file_name=None,
+        candidate_name=None
     ):
 
-        if not job_description:
+        resume_text = (
+            resume_text or ""
+        ).strip()
 
-            raise ValueError(
-                "Job Description cannot be empty."
-            )
-
+        jd_text = (
+            jd_text or ""
+        ).strip()
 
         if not resume_text:
 
             raise ValueError(
-                "Resume text cannot be empty."
+                "Resume text is empty."
             )
 
+        if not jd_text:
 
-        # ====================================================
-        # BUILD CONTEXT
-        # ====================================================
+            raise ValueError(
+                "Job Description text is empty."
+            )
 
-        retrieved_context = (
-            self.build_retrieved_context(
-                retrieved_chunks
+        # ----------------------------------------------------
+        # JD
+        # ----------------------------------------------------
+
+        jd_requirements = (
+            self.extract_jd_requirements(
+                jd_text
             )
         )
 
+        # ----------------------------------------------------
+        # RESUME
+        # ----------------------------------------------------
 
-        # ====================================================
-        # SYSTEM PROMPT
-        # ====================================================
-
-        system_prompt = self.build_system_prompt()
-
-
-        # ====================================================
-        # USER PROMPT
-        # ====================================================
-
-        user_prompt = self.build_user_prompt(
-
-            job_description=
-                job_description,
-
-            resume_text=
-                resume_text,
-
-            retrieved_context=
-                retrieved_context
-
+        resume_information = (
+            self.extract_resume_information(
+                resume_text
+            )
         )
 
+        # ----------------------------------------------------
+        # SCORE
+        # ----------------------------------------------------
 
-        # ====================================================
-        # OPENAI REQUEST
-        # ====================================================
+        score_result = (
+            self.score_calculator.calculate(
+
+                required_skills=
+                    jd_requirements.get(
+                        "required_skills",
+                        []
+                    ),
+
+                candidate_skills=
+                    resume_information.get(
+                        "skills",
+                        []
+                    ),
+
+                required_years=
+                    jd_requirements.get(
+                        "required_years"
+                    ),
+
+                candidate_years=
+                    resume_information.get(
+                        "years_of_experience"
+                    ),
+
+                required_responsibilities=
+                    jd_requirements.get(
+                        "responsibilities",
+                        []
+                    ),
+
+                candidate_responsibilities=
+                    resume_information.get(
+                        "responsibilities",
+                        []
+                    ),
+
+                required_education=
+                    jd_requirements.get(
+                        "education"
+                    ),
+
+                candidate_education=
+                    resume_information.get(
+                        "education"
+                    ),
+
+                retrieval_score=
+                    retrieval_score
+            )
+        )
+
+        # ----------------------------------------------------
+        # PROJECTS
+        # ----------------------------------------------------
+
+        projects = (
+            resume_information.get(
+                "projects",
+                []
+            )
+        )
+
+        relevant_projects = (
+            self.find_relevant_projects(
+                projects,
+                jd_requirements
+            )
+        )
+
+        # ----------------------------------------------------
+        # RESULT
+        # ----------------------------------------------------
+
+        return {
+
+            "file_name":
+                file_name or "",
+
+            "candidate_name":
+                candidate_name
+                or
+                resume_information.get(
+                    "candidate_name",
+                    "Unknown"
+                ),
+
+            # ------------------------------------------------
+            # SCORE
+            # ------------------------------------------------
+
+            "match_percentage":
+                score_result[
+                    "match_percentage"
+                ],
+
+            "overall_match_percentage":
+                score_result[
+                    "overall_match_percentage"
+                ],
+
+            # IMPORTANT:
+            # Retrieval score remains separate.
+            "retrieval_score":
+                retrieval_score,
+
+            # ------------------------------------------------
+            # COMPONENTS
+            # ------------------------------------------------
+
+            "component_scores":
+                score_result[
+                    "component_scores"
+                ],
+
+            "skill_score":
+                score_result[
+                    "skill_score"
+                ],
+
+            "experience_score":
+                score_result[
+                    "experience_score"
+                ],
+
+            "responsibility_score":
+                score_result[
+                    "responsibility_score"
+                ],
+
+            "education_score":
+                score_result[
+                    "education_score"
+                ],
+
+            # ------------------------------------------------
+            # JD SKILLS
+            # ------------------------------------------------
+
+            "required_skills":
+                jd_requirements.get(
+                    "required_skills",
+                    []
+                ),
+
+            "preferred_skills":
+                jd_requirements.get(
+                    "preferred_skills",
+                    []
+                ),
+
+            # ------------------------------------------------
+            # RESUME SKILLS
+            # ------------------------------------------------
+
+            "candidate_skills":
+                resume_information.get(
+                    "skills",
+                    []
+                ),
+
+            # ------------------------------------------------
+            # MATCHED
+            # ------------------------------------------------
+
+            "matched_required_skills":
+                score_result[
+                    "matched_required_skills"
+                ],
+
+            "matched_skills":
+                score_result[
+                    "matched_required_skills"
+                ],
+
+            # ------------------------------------------------
+            # MISSING
+            # ------------------------------------------------
+
+            "missing_required_skills":
+                score_result[
+                    "missing_required_skills"
+                ],
+
+            "missing_skills":
+                score_result[
+                    "missing_required_skills"
+                ],
+
+            # ------------------------------------------------
+            # ADDITIONAL
+            # ------------------------------------------------
+
+            "additional_candidate_skills":
+                score_result[
+                    "additional_candidate_skills"
+                ],
+
+            # ------------------------------------------------
+            # EXPERIENCE
+            # ------------------------------------------------
+
+            "required_years":
+                jd_requirements.get(
+                    "required_years"
+                ),
+
+            "candidate_years":
+                resume_information.get(
+                    "years_of_experience"
+                ),
+
+            # ------------------------------------------------
+            # RESPONSIBILITIES
+            # ------------------------------------------------
+
+            "required_responsibilities":
+                jd_requirements.get(
+                    "responsibilities",
+                    []
+                ),
+
+            "candidate_responsibilities":
+                resume_information.get(
+                    "responsibilities",
+                    []
+                ),
+
+            "responsibility_match":
+                score_result[
+                    "responsibility_coverage"
+                ],
+
+            # ------------------------------------------------
+            # EDUCATION
+            # ------------------------------------------------
+
+            "required_education":
+                jd_requirements.get(
+                    "education"
+                ),
+
+            "candidate_education":
+                resume_information.get(
+                    "education"
+                ),
+
+            # ------------------------------------------------
+            # PROJECTS
+            # ------------------------------------------------
+
+            "relevant_projects":
+                relevant_projects,
+
+            # ------------------------------------------------
+            # ANALYSIS
+            # ------------------------------------------------
+
+            "strengths":
+                self.generate_strengths(
+                    score_result
+                ),
+
+            "skill_gaps":
+                self.generate_skill_gaps(
+                    score_result
+                ),
+
+            "recommendations":
+                self.generate_recommendations(
+                    score_result
+                ),
+
+            "summary":
+                self.generate_summary(
+                    score_result
+                ),
+
+            # ------------------------------------------------
+            # RAW STRUCTURED DATA
+            # ------------------------------------------------
+
+            "jd_requirements":
+                jd_requirements,
+
+            "resume_information":
+                resume_information
+        }
+
+    # ========================================================
+    # JD EXTRACTION
+    # ========================================================
+
+    def extract_jd_requirements(
+        self,
+        jd_text
+    ):
+
+        if self.client:
+
+            try:
+
+                return self.extract_jd_with_llm(
+                    jd_text
+                )
+
+            except Exception:
+
+                pass
+
+        return self.extract_jd_locally(
+            jd_text
+        )
+
+    # ========================================================
+    # JD LLM
+    # ========================================================
+
+    def extract_jd_with_llm(
+        self,
+        jd_text
+    ):
+
+        system_prompt = """
+You are an expert Job Description parser.
+
+Return ONLY valid JSON.
+
+Schema:
+
+{
+    "required_skills": [],
+    "preferred_skills": [],
+    "required_years": null,
+    "responsibilities": [],
+    "education": null,
+    "job_title": null,
+    "domain": null
+}
+
+Rules:
+
+1. Extract only skills actually required by the JD.
+2. Do not invent skills.
+3. Do not mark unrelated resume skills as JD skills.
+4. Git is NOT a match unless Git is required by the JD.
+5. required_years must be numeric or null.
+6. responsibilities must be a list.
+7. education must be string or null.
+"""
 
         response = (
-            self.client.chat.completions.create(
+            self.client
+            .chat
+            .completions
+            .create(
 
-                model=self.model_name,
+                model=self.model,
+
+                temperature=0,
+
+                response_format={
+                    "type":
+                        "json_object"
+                },
 
                 messages=[
 
@@ -116,7 +487,6 @@ class CandidateAnalyzer:
 
                         "content":
                             system_prompt
-
                     },
 
                     {
@@ -124,26 +494,11 @@ class CandidateAnalyzer:
                             "user",
 
                         "content":
-                            user_prompt
-
+                            jd_text
                     }
-
-                ],
-
-                temperature=0,
-
-                response_format={
-                    "type":
-                        "json_object"
-                }
-
+                ]
             )
         )
-
-
-        # ====================================================
-        # GET RESPONSE
-        # ====================================================
 
         content = (
             response
@@ -152,748 +507,1158 @@ class CandidateAnalyzer:
             .content
         )
 
-
-        # ====================================================
-        # PARSE JSON
-        # ====================================================
-
-        result = (
-            self.parse_json(
-                content
-            )
+        result = json.loads(
+            content
         )
 
-
-        # ====================================================
-        # NORMALIZE RESULT
-        # ====================================================
-
-        result = (
-            self.normalize_result(
-                result
-            )
+        return self.normalize_jd_result(
+            result
         )
 
-
-        return result
-
-
     # ========================================================
-    # SYSTEM PROMPT
+    # LOCAL JD
     # ========================================================
 
-    def build_system_prompt(self):
-
-        return """
-You are an expert technical recruiter and resume
-analysis system.
-
-Your job is to compare a candidate's resume against
-a Job Description.
-
-Analyze only evidence available in the supplied data.
-
-Never invent skills, experience, education, projects,
-certifications, employers or technologies.
-
-Extract structured information that can be used by a
-separate scoring engine.
-
-You must return valid JSON.
-
-Important:
-
-- Do not calculate the final recruitment score.
-- Do not treat cosine similarity as a match percentage.
-- Do not treat BM25 score as a match percentage.
-- Identify required skills.
-- Identify candidate skills.
-- Identify matched skills.
-- Identify missing skills.
-- Extract required experience.
-- Extract candidate experience.
-- Compare responsibilities.
-- Compare education.
-- Identify relevant projects.
-- Identify strengths.
-- Identify skill gaps.
-- Provide recommendations.
-
-If information is unavailable, use an empty value.
-
-Return JSON only.
-"""
-
-
-    # ========================================================
-    # USER PROMPT
-    # ========================================================
-
-    def build_user_prompt(
+    def extract_jd_locally(
         self,
-        job_description,
-        resume_text,
-        retrieved_context=""
+        jd_text
     ):
 
-        prompt = f"""
-Analyze the following candidate.
-
-============================================================
-JOB DESCRIPTION
-============================================================
-
-{job_description}
-
-
-============================================================
-FULL RESUME
-============================================================
-
-{resume_text}
-
-
-============================================================
-RETRIEVED RELEVANT RESUME INFORMATION
-============================================================
-
-{retrieved_context}
-
-
-============================================================
-REQUIRED ANALYSIS
-============================================================
-
-Extract the following:
-
-1. Candidate name
-
-2. Email
-
-3. Phone
-
-4. Required technical skills
-
-5. Candidate technical skills
-
-6. Matched skills
-
-7. Missing skills
-
-8. Required years of experience
-
-9. Candidate years of experience
-
-10. Experience match
-
-11. Required responsibilities
-
-12. Candidate responsibilities
-
-13. Responsibility match
-
-14. Required education
-
-15. Candidate education
-
-16. Education match
-
-17. Relevant projects
-
-18. Project relevance
-
-19. Strengths
-
-20. Skill gaps
-
-21. Recommendations
-
-22. Summary
-
-
-============================================================
-IMPORTANT
-============================================================
-
-Do not invent information.
-
-If the Job Description says "3+ years Python"
-and the resume does not provide experience information,
-do not assume that the candidate has 3 years.
-
-Use null, empty string or empty array when information
-is unavailable.
-
-Return JSON only.
-"""
-
-        return prompt
-
-
-    # ========================================================
-    # RETRIEVED CONTEXT
-    # ========================================================
-
-    def build_retrieved_context(
-        self,
-        retrieved_chunks
-    ):
-
-        if not retrieved_chunks:
-
-            return ""
-
-
-        context_parts = []
-
-
-        for index, item in enumerate(
-
-            retrieved_chunks,
-
-            start=1
-
-        ):
-
-            # ------------------------------------------------
-            # Dictionary result
-            # ------------------------------------------------
-
-            if isinstance(
-                item,
-                dict
-            ):
-
-                text = (
-
-                    item.get(
-                        "text"
-                    )
-
-                    or
-
-                    item.get(
-                        "document"
-                    )
-
-                    or
-
-                    item.get(
-                        "content"
-                    )
-
-                    or
-
-                    ""
-
-                )
-
-
-                score = item.get(
-                    "score"
-                )
-
-
-                if score is not None:
-
-                    context_parts.append(
-
-                        f"[Chunk {index} | "
-                        f"Score: {score}]\n"
-                        f"{text}"
-
-                    )
-
-                else:
-
-                    context_parts.append(
-
-                        f"[Chunk {index}]\n"
-                        f"{text}"
-
-                    )
-
-
-            # ------------------------------------------------
-            # String result
-            # ------------------------------------------------
-
-            else:
-
-                context_parts.append(
-
-                    f"[Chunk {index}]\n"
-                    f"{str(item)}"
-
-                )
-
-
-        return "\n\n".join(
-            context_parts
+        lower_text = (
+            jd_text.lower()
         )
 
+        known_skills = [
+
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "TypeScript",
+            "SQL",
+
+            "Machine Learning",
+            "Deep Learning",
+            "NLP",
+
+            "Generative AI",
+            "GenAI",
+            "LLM",
+            "LLM applications",
+
+            "RAG",
+            "Retrieval Augmented Generation",
+
+            "Embeddings",
+
+            "Vector Database",
+            "Vector Databases",
+
+            "Semantic Search",
+
+            "Prompt Engineering",
+
+            "LangChain",
+            "LangGraph",
+            "LlamaIndex",
+
+            "ChromaDB",
+            "Pinecone",
+            "FAISS",
+
+            "OpenAI",
+            "Hugging Face",
+            "Transformers",
+
+            "PyTorch",
+            "TensorFlow",
+
+            "Docker",
+            "Kubernetes",
+
+            "Git",
+            "GitHub",
+
+            "FastAPI",
+            "Flask",
+            "Streamlit",
+
+            "REST API",
+
+            "AWS",
+            "Azure",
+            "GCP"
+        ]
+
+        required_skills = []
+
+        for skill in known_skills:
+
+            if skill.lower() in lower_text:
+
+                required_skills.append(
+                    skill
+                )
+
+        return {
+
+            "required_skills":
+                self.unique_list(
+                    required_skills
+                ),
+
+            "preferred_skills": [],
+
+            "required_years":
+                self.extract_years(
+                    jd_text
+                ),
+
+            "responsibilities":
+                self.extract_responsibilities(
+                    jd_text
+                ),
+
+            "education":
+                self.extract_education(
+                    jd_text
+                ),
+
+            "job_title":
+                self.extract_job_title(
+                    jd_text
+                ),
+
+            "domain":
+                None
+        }
 
     # ========================================================
-    # PARSE JSON
+    # RESUME EXTRACTION
     # ========================================================
 
-    def parse_json(
+    def extract_resume_information(
         self,
-        content
+        resume_text
     ):
 
-        if not content:
-
-            raise ValueError(
-                "LLM returned an empty response."
-            )
-
-
-        content = content.strip()
-
-
-        # ====================================================
-        # DIRECT JSON
-        # ====================================================
-
-        try:
-
-            return json.loads(
-                content
-            )
-
-        except json.JSONDecodeError:
-
-            pass
-
-
-        # ====================================================
-        # JSON CODE BLOCK
-        # ====================================================
-
-        match = re.search(
-
-            r"```json\s*(.*?)\s*```",
-
-            content,
-
-            re.DOTALL
-
-        )
-
-
-        if match:
+        if self.client:
 
             try:
 
-                return json.loads(
-
-                    match.group(1)
-
+                return self.extract_resume_with_llm(
+                    resume_text
                 )
 
-            except json.JSONDecodeError:
+            except Exception:
 
                 pass
 
-
-        # ====================================================
-        # GENERIC CODE BLOCK
-        # ====================================================
-
-        match = re.search(
-
-            r"```\s*(.*?)\s*```",
-
-            content,
-
-            re.DOTALL
-
+        return self.extract_resume_locally(
+            resume_text
         )
 
+    # ========================================================
+    # RESUME LLM
+    # ========================================================
 
-        if match:
+    def extract_resume_with_llm(
+        self,
+        resume_text
+    ):
 
-            try:
+        system_prompt = """
+You are an expert Resume parser.
 
-                return json.loads(
+Return ONLY valid JSON.
 
-                    match.group(1)
+Schema:
 
+{
+    "candidate_name": null,
+    "skills": [],
+    "years_of_experience": null,
+    "responsibilities": [],
+    "education": null,
+    "projects": []
+}
+
+Rules:
+
+1. Extract only information actually present.
+2. Do not invent skills.
+3. Do not infer technologies.
+4. Preserve technology names.
+"""
+
+        response = (
+            self.client
+            .chat
+            .completions
+            .create(
+
+                model=self.model,
+
+                temperature=0,
+
+                response_format={
+                    "type":
+                        "json_object"
+                },
+
+                messages=[
+
+                    {
+                        "role":
+                            "system",
+
+                        "content":
+                            system_prompt
+                    },
+
+                    {
+                        "role":
+                            "user",
+
+                        "content":
+                            resume_text
+                    }
+                ]
+            )
+        )
+
+        content = (
+            response
+            .choices[0]
+            .message
+            .content
+        )
+
+        result = json.loads(
+            content
+        )
+
+        return self.normalize_resume_result(
+            result
+        )
+
+    # ========================================================
+    # LOCAL RESUME
+    # ========================================================
+
+    def extract_resume_locally(
+        self,
+        resume_text
+    ):
+
+        lower_text = (
+            resume_text.lower()
+        )
+
+        known_skills = [
+
+            "Python",
+            "Java",
+            "C++",
+            "JavaScript",
+            "TypeScript",
+            "SQL",
+
+            "Machine Learning",
+            "Deep Learning",
+            "NLP",
+
+            "Generative AI",
+            "GenAI",
+            "LLM",
+            "LLM applications",
+
+            "RAG",
+            "Retrieval Augmented Generation",
+
+            "Embeddings",
+
+            "Vector Database",
+            "Vector Databases",
+
+            "Semantic Search",
+
+            "Prompt Engineering",
+
+            "LangChain",
+            "LangGraph",
+            "LlamaIndex",
+
+            "ChromaDB",
+            "Pinecone",
+            "FAISS",
+
+            "OpenAI",
+            "Hugging Face",
+            "Transformers",
+
+            "PyTorch",
+            "TensorFlow",
+
+            "Docker",
+            "Kubernetes",
+
+            "Git",
+            "GitHub",
+
+            "FastAPI",
+            "Flask",
+            "Streamlit",
+
+            "REST API",
+
+            "AWS",
+            "Azure",
+            "GCP"
+        ]
+
+        skills = []
+
+        for skill in known_skills:
+
+            if skill.lower() in lower_text:
+
+                skills.append(
+                    skill
                 )
 
-            except json.JSONDecodeError:
+        return {
 
-                pass
+            "candidate_name":
+                self.extract_candidate_name(
+                    resume_text
+                ),
 
+            "skills":
+                self.unique_list(
+                    skills
+                ),
 
-        # ====================================================
-        # FIRST JSON OBJECT
-        # ====================================================
+            "years_of_experience":
+                self.extract_years(
+                    resume_text
+                ),
 
-        start = content.find(
-            "{"
+            "responsibilities":
+                self.extract_responsibilities(
+                    resume_text
+                ),
+
+            "education":
+                self.extract_education(
+                    resume_text
+                ),
+
+            "projects":
+                self.extract_projects(
+                    resume_text
+                )
+        }
+
+    # ========================================================
+    # STRENGTHS
+    # ========================================================
+
+    def generate_strengths(
+        self,
+        score_result
+    ):
+
+        strengths = []
+
+        matched = (
+            score_result.get(
+                "matched_required_skills",
+                []
+            )
         )
 
+        if matched:
 
-        end = content.rfind(
-            "}"
-        )
-
+            strengths.append(
+                "Matches required skills: "
+                +
+                ", ".join(
+                    matched
+                )
+            )
 
         if (
-
-            start != -1
-
-            and
-
-            end != -1
-
-            and
-
-            end > start
-
+            score_result.get(
+                "experience_score",
+                0
+            )
+            >=
+            100
         ):
 
-            json_text = content[
-                start:
-                end + 1
-            ]
+            strengths.append(
+                "Meets or exceeds the "
+                "required experience."
+            )
 
+        if (
+            score_result.get(
+                "responsibility_score",
+                0
+            )
+            >=
+            70
+        ):
 
-            try:
+            strengths.append(
+                "Strong alignment with "
+                "required responsibilities."
+            )
 
-                return json.loads(
-                    json_text
+        if (
+            score_result.get(
+                "education_score",
+                0
+            )
+            >=
+            100
+        ):
+
+            strengths.append(
+                "Education requirement is satisfied."
+            )
+
+        if not strengths:
+
+            strengths.append(
+                "Limited direct alignment "
+                "with the current JD."
+            )
+
+        return strengths
+
+    # ========================================================
+    # SKILL GAPS
+    # ========================================================
+
+    def generate_skill_gaps(
+        self,
+        score_result
+    ):
+
+        return list(
+            score_result.get(
+                "missing_required_skills",
+                []
+            )
+        )
+
+    # ========================================================
+    # RECOMMENDATIONS
+    # ========================================================
+
+    def generate_recommendations(
+        self,
+        score_result
+    ):
+
+        recommendations = []
+
+        missing = (
+            score_result.get(
+                "missing_required_skills",
+                []
+            )
+        )
+
+        if missing:
+
+            recommendations.append(
+                "Develop the missing required skills: "
+                +
+                ", ".join(
+                    missing
                 )
+            )
 
-            except json.JSONDecodeError:
+        if (
+            score_result.get(
+                "experience_score",
+                0
+            )
+            < 100
+        ):
 
-                pass
+            recommendations.append(
+                "Gain additional relevant experience."
+            )
 
+        if (
+            score_result.get(
+                "responsibility_score",
+                0
+            )
+            < 70
+        ):
 
-        raise ValueError(
+            recommendations.append(
+                "Highlight experience that maps "
+                "directly to the JD responsibilities."
+            )
 
-            "Unable to parse the LLM response "
-            "as valid JSON."
+        return recommendations
+
+    # ========================================================
+    # SUMMARY
+    # ========================================================
+
+    def generate_summary(
+        self,
+        score_result
+    ):
+
+        match_percentage = (
+            score_result.get(
+                "match_percentage",
+                0
+            )
+        )
+
+        matched = (
+            score_result.get(
+                "matched_required_skills",
+                []
+            )
+        )
+
+        missing = (
+            score_result.get(
+                "missing_required_skills",
+                []
+            )
+        )
+
+        return (
+
+            f"Overall Resume-to-JD match is "
+            f"{match_percentage:.2f}%. "
+
+            f"{len(matched)} required skill(s) "
+            f"matched and "
+
+            f"{len(missing)} required skill(s) "
+            f"are missing."
 
         )
 
+    # ========================================================
+    # PROJECTS
+    # ========================================================
+
+    def find_relevant_projects(
+        self,
+        projects,
+        jd_requirements
+    ):
+
+        if not projects:
+
+            return []
+
+        required_skills = [
+
+            str(skill).lower()
+
+            for skill
+            in jd_requirements.get(
+                "required_skills",
+                []
+            )
+        ]
+
+        relevant = []
+
+        for project in projects:
+
+            project_lower = (
+                str(project).lower()
+            )
+
+            for skill in required_skills:
+
+                if skill in project_lower:
+
+                    relevant.append(
+                        project
+                    )
+
+                    break
+
+        return self.unique_list(
+            relevant
+        )
 
     # ========================================================
-    # NORMALIZE RESULT
+    # YEARS
     # ========================================================
 
-    def normalize_result(
+    @staticmethod
+    def extract_years(
+        text
+    ):
+
+        patterns = [
+
+            r"(\d+(?:\.\d+)?)\s*\+?\s*years",
+
+            r"(\d+(?:\.\d+)?)\s*\+?\s*yrs",
+
+            r"minimum\s+(\d+(?:\.\d+)?)",
+
+            r"at\s+least\s+(\d+(?:\.\d+)?)"
+        ]
+
+        values = []
+
+        for pattern in patterns:
+
+            matches = re.findall(
+                pattern,
+                text,
+                flags=re.IGNORECASE
+            )
+
+            for value in matches:
+
+                try:
+
+                    values.append(
+                        float(value)
+                    )
+
+                except Exception:
+
+                    pass
+
+        if not values:
+
+            return None
+
+        return max(
+            values
+        )
+
+    # ========================================================
+    # EDUCATION
+    # ========================================================
+
+    @staticmethod
+    def extract_education(
+        text
+    ):
+
+        patterns = [
+
+            "PhD",
+            "Doctorate",
+            "Master's",
+            "Masters",
+            "M.Tech",
+            "MTech",
+            "MBA",
+            "Bachelor's",
+            "Bachelors",
+            "B.Tech",
+            "BTech",
+            "BE",
+            "Diploma"
+        ]
+
+        found = []
+
+        for education in patterns:
+
+            if re.search(
+                re.escape(education),
+                text,
+                flags=re.IGNORECASE
+            ):
+
+                found.append(
+                    education
+                )
+
+        if not found:
+
+            return None
+
+        return ", ".join(
+            found
+        )
+
+    # ========================================================
+    # RESPONSIBILITIES
+    # ========================================================
+
+    @staticmethod
+    def extract_responsibilities(
+        text
+    ):
+
+        lines = text.splitlines()
+
+        responsibilities = []
+
+        capture = False
+
+        headers = [
+
+            "responsibilities",
+
+            "roles and responsibilities",
+
+            "what you will do",
+
+            "what you'll do",
+
+            "key responsibilities",
+
+            "job responsibilities"
+        ]
+
+        for line in lines:
+
+            clean = line.strip()
+
+            if not clean:
+
+                continue
+
+            lower = clean.lower()
+
+            if any(
+                header in lower
+                for header in headers
+            ):
+
+                capture = True
+                continue
+
+            if capture:
+
+                if (
+                    clean.startswith("-")
+                    or
+                    clean.startswith("•")
+                    or
+                    re.match(
+                        r"^\d+[.)]",
+                        clean
+                    )
+                ):
+
+                    clean = re.sub(
+                        r"^[-•]\s*",
+                        "",
+                        clean
+                    )
+
+                    clean = re.sub(
+                        r"^\d+[.)]\s*",
+                        "",
+                        clean
+                    )
+
+                    if clean:
+
+                        responsibilities.append(
+                            clean
+                        )
+
+                elif (
+                    responsibilities
+                    and
+                    len(clean) < 80
+                    and
+                    clean.endswith(":")
+                ):
+
+                    capture = False
+
+        return responsibilities[:30]
+
+    # ========================================================
+    # PROJECTS
+    # ========================================================
+
+    @staticmethod
+    def extract_projects(
+        text
+    ):
+
+        lines = text.splitlines()
+
+        projects = []
+
+        capture = False
+
+        for line in lines:
+
+            clean = line.strip()
+
+            if not clean:
+
+                continue
+
+            lower = clean.lower()
+
+            if (
+                "projects" in lower
+                and
+                len(clean) < 80
+            ):
+
+                capture = True
+                continue
+
+            if capture:
+
+                if (
+                    clean.startswith("-")
+                    or
+                    clean.startswith("•")
+                    or
+                    re.match(
+                        r"^\d+[.)]",
+                        clean
+                    )
+                ):
+
+                    clean = re.sub(
+                        r"^[-•]\s*",
+                        "",
+                        clean
+                    )
+
+                    clean = re.sub(
+                        r"^\d+[.)]\s*",
+                        "",
+                        clean
+                    )
+
+                    projects.append(
+                        clean
+                    )
+
+        return projects[:30]
+
+    # ========================================================
+    # CANDIDATE NAME
+    # ========================================================
+
+    @staticmethod
+    def extract_candidate_name(
+        text
+    ):
+
+        lines = [
+
+            line.strip()
+
+            for line
+            in text.splitlines()
+
+            if line.strip()
+        ]
+
+        if not lines:
+
+            return "Unknown"
+
+        invalid = {
+
+            "resume",
+            "curriculum vitae",
+            "cv",
+            "profile",
+            "summary",
+            "experience",
+            "skills",
+            "education"
+        }
+
+        if (
+            lines[0].lower()
+            not in invalid
+            and
+            len(lines[0]) <= 80
+        ):
+
+            return lines[0]
+
+        return "Unknown"
+
+    # ========================================================
+    # JOB TITLE
+    # ========================================================
+
+    @staticmethod
+    def extract_job_title(
+        text
+    ):
+
+        patterns = [
+
+            r"job title\s*:\s*(.+)",
+
+            r"position\s*:\s*(.+)",
+
+            r"role\s*:\s*(.+)"
+        ]
+
+        for pattern in patterns:
+
+            match = re.search(
+                pattern,
+                text,
+                flags=re.IGNORECASE
+            )
+
+            if match:
+
+                return match.group(
+                    1
+                ).strip()
+
+        return None
+
+    # ========================================================
+    # NORMALIZE JD
+    # ========================================================
+
+    def normalize_jd_result(
         self,
         result
     ):
 
-        if not isinstance(
-            result,
-            dict
-        ):
-
-            result = {}
-
-
-        # ====================================================
-        # BASIC INFORMATION
-        # ====================================================
-
-        normalized = {
-
-            "candidate_name":
-                result.get(
-                    "candidate_name",
-                    ""
-                ),
-
-            "email":
-                result.get(
-                    "email",
-                    ""
-                ),
-
-            "phone":
-                result.get(
-                    "phone",
-                    ""
-                ),
+        return {
 
             "required_skills":
-                self.ensure_list(
-
+                self.normalize_list(
                     result.get(
                         "required_skills",
                         []
                     )
-
                 ),
 
-            "candidate_skills":
-                self.ensure_list(
-
+            "preferred_skills":
+                self.normalize_list(
                     result.get(
-                        "candidate_skills",
+                        "preferred_skills",
                         []
                     )
-
-                ),
-
-            "matched_skills":
-                self.ensure_list(
-
-                    result.get(
-                        "matched_skills",
-                        []
-                    )
-
-                ),
-
-            "missing_skills":
-                self.ensure_list(
-
-                    result.get(
-                        "missing_skills",
-                        []
-                    )
-
                 ),
 
             "required_years":
-                self.to_number(
-
+                self.safe_float(
                     result.get(
-                        "required_years",
-                        0
+                        "required_years"
                     )
-
                 ),
 
-            "candidate_years":
-                self.to_number(
-
+            "responsibilities":
+                self.normalize_list(
                     result.get(
-                        "candidate_years",
-                        0
-                    )
-
-                ),
-
-            "experience_match":
-                result.get(
-                    "experience_match",
-                    ""
-                ),
-
-            "required_responsibilities":
-                self.ensure_list(
-
-                    result.get(
-                        "required_responsibilities",
+                        "responsibilities",
                         []
                     )
-
                 ),
 
-            "candidate_responsibilities":
-                self.ensure_list(
-
+            "education":
+                self.safe_string(
                     result.get(
-                        "candidate_responsibilities",
-                        []
+                        "education"
                     )
-
                 ),
 
-            "responsibility_match":
-                result.get(
-                    "responsibility_match",
-                    ""
-                ),
-
-            "required_education":
-                result.get(
-                    "required_education",
-                    ""
-                ),
-
-            "candidate_education":
-                result.get(
-                    "candidate_education",
-                    ""
-                ),
-
-            "education_match":
-                result.get(
-                    "education_match",
-                    ""
-                ),
-
-            "relevant_projects":
-                self.ensure_list(
-
+            "job_title":
+                self.safe_string(
                     result.get(
-                        "relevant_projects",
-                        []
+                        "job_title"
                     )
-
                 ),
 
-            "project_relevance":
-                result.get(
-                    "project_relevance",
-                    ""
-                ),
-
-            "strengths":
-                self.ensure_list(
-
+            "domain":
+                self.safe_string(
                     result.get(
-                        "strengths",
-                        []
+                        "domain"
                     )
-
-                ),
-
-            "skill_gaps":
-                self.ensure_list(
-
-                    result.get(
-                        "skill_gaps",
-                        []
-                    )
-
-                ),
-
-            "recommendations":
-                self.ensure_list(
-
-                    result.get(
-                        "recommendations",
-                        []
-                    )
-
-                ),
-
-            "summary":
-                result.get(
-                    "summary",
-                    ""
                 )
-
         }
 
+    # ========================================================
+    # NORMALIZE RESUME
+    # ========================================================
 
-        return normalized
+    def normalize_resume_result(
+        self,
+        result
+    ):
 
+        return {
+
+            "candidate_name":
+                self.safe_string(
+                    result.get(
+                        "candidate_name"
+                    )
+                ),
+
+            "skills":
+                self.normalize_list(
+                    result.get(
+                        "skills",
+                        []
+                    )
+                ),
+
+            "years_of_experience":
+                self.safe_float(
+                    result.get(
+                        "years_of_experience"
+                    )
+                ),
+
+            "responsibilities":
+                self.normalize_list(
+                    result.get(
+                        "responsibilities",
+                        []
+                    )
+                ),
+
+            "education":
+                self.safe_string(
+                    result.get(
+                        "education"
+                    )
+                ),
+
+            "projects":
+                self.normalize_list(
+                    result.get(
+                        "projects",
+                        []
+                    )
+                )
+        }
 
     # ========================================================
-    # ENSURE LIST
+    # NORMALIZE LIST
     # ========================================================
 
     @staticmethod
-    def ensure_list(
-        value
+    def normalize_list(
+        values
     ):
 
-        if value is None:
+        if not values:
 
             return []
 
-
         if isinstance(
-            value,
-            list
-        ):
-
-            return value
-
-
-        if isinstance(
-            value,
-            tuple
-        ):
-
-            return list(
-                value
-            )
-
-
-        if isinstance(
-            value,
+            values,
             str
         ):
 
-            if not value.strip():
-
-                return []
-
-
-            return [
-
-                value.strip()
-
+            values = [
+                values
             ]
 
-
-        return [
-            value
-        ]
-
+        return CandidateAnalyzer.unique_list(
+            values
+        )
 
     # ========================================================
-    # NUMBER CONVERSION
+    # UNIQUE
     # ========================================================
 
     @staticmethod
-    def to_number(
+    def unique_list(
+        values
+    ):
+
+        result = []
+
+        seen = set()
+
+        for value in values:
+
+            if value is None:
+
+                continue
+
+            value = str(
+                value
+            ).strip()
+
+            if not value:
+
+                continue
+
+            key = value.lower()
+
+            if key not in seen:
+
+                result.append(
+                    value
+                )
+
+                seen.add(
+                    key
+                )
+
+        return result
+
+    # ========================================================
+    # SAFE STRING
+    # ========================================================
+
+    @staticmethod
+    def safe_string(
         value
     ):
 
         if value is None:
 
-            return 0
+            return None
 
+        value = str(
+            value
+        ).strip()
 
-        if isinstance(
-            value,
-            (
-                int,
-                float
-            )
-        ):
+        return value or None
 
-            return value
+    # ========================================================
+    # SAFE FLOAT
+    # ========================================================
 
+    @staticmethod
+    def safe_float(
+        value
+    ):
+
+        if value is None:
+
+            return None
 
         try:
 
-            value = str(
+            return float(
                 value
             )
-
-
-            match = re.search(
-
-                r"\d+(?:\.\d+)?",
-
-                value
-
-            )
-
-
-            if match:
-
-                return float(
-                    match.group()
-                )
-
 
         except Exception:
 
-            pass
-
-
-        return 0
+            return None
