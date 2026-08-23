@@ -5,6 +5,7 @@
 
 import streamlit as st
 import pandas as pd
+from pathlib import Path
 
 from document_process import DocumentProcess
 
@@ -94,6 +95,62 @@ with st.sidebar:
     st.header("⚙️ Settings")
 
     st.divider()
+
+    # ========================================================
+    # ARCHITECTURE DOWNLOAD
+    # ========================================================
+
+    st.markdown("### 🏗️ Architecture")
+
+    architecture_path = (
+        Path(__file__).parent
+        / "assets"
+        / "Resume Analyzer Application Architecture Diagram.png"
+    )
+
+    if architecture_path.exists():
+
+        with open(
+            architecture_path,
+            "rb"
+        ) as architecture_file:
+
+            architecture_bytes = (
+                architecture_file.read()
+            )
+
+        st.download_button(
+            label="📥 Download Architecture",
+            data=architecture_bytes,
+            file_name=(
+                "Resume Analyzer Application "
+                "Architecture Diagram.png"
+            ),
+            mime="image/png",
+            use_container_width=True
+        )
+
+        if st.checkbox(
+            "👁️ View Architecture",
+            value=False
+        ):
+
+            st.image(
+                architecture_bytes,
+                caption=(
+                    "Resume Analyzer Application "
+                    "Architecture Diagram"
+                ),
+                use_container_width=True
+            )
+
+    else:
+
+        st.warning(
+            "Architecture diagram not found. "
+            "Place the PNG inside the assets folder."
+        )
+
 
     # ========================================================
     # EMBEDDING METHOD
@@ -248,20 +305,27 @@ with st.sidebar:
     # OPENAI API KEY
     # ========================================================
 
-    st.markdown("### 🔑 OpenAI")
+    # Show the API-key field only when OpenAI Embeddings
+    # is selected.
+    openai_api_key = ""
 
-    openai_api_key = st.text_input(
+    if embedding_method == "OpenAI Embeddings":
 
-        "OpenAI API Key",
+        st.markdown("### 🔑 OpenAI")
 
-        type="password",
-
-        help=(
-            "Required for OpenAI embeddings "
-            "and LLM candidate analysis."
+        openai_api_key = st.text_input(
+            "OpenAI API Key",
+            type="password",
+            placeholder="sk-...",
+            help="Required when OpenAI Embeddings is selected."
         )
 
-    )
+        if openai_api_key:
+            st.success("✅ OpenAI API key provided.")
+        else:
+            st.warning(
+                "⚠️ OpenAI API key is required for OpenAI Embeddings."
+            )
 
 
     # ========================================================
@@ -539,6 +603,9 @@ with st.sidebar:
         "model context window from overflow."
 
     )
+
+    st.divider()
+
 
 
 # ============================================================
@@ -891,19 +958,19 @@ if parse_button:
 
 
     # ========================================================
-    # OPENAI KEY
+    # OPENAI KEY VALIDATION
     # ========================================================
 
-    if not openai_api_key:
+    if embedding_method == "OpenAI Embeddings":
 
-        st.error(
+        if not openai_api_key.strip():
 
-            "OpenAI API key is required "
-            "for Candidate Analyzer."
+            st.error(
+                "🔑 Please enter the OpenAI API key "
+                "because OpenAI Embeddings is selected."
+            )
 
-        )
-
-        st.stop()
+            st.stop()
 
 
     # ========================================================
