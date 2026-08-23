@@ -6,6 +6,8 @@
 import streamlit as st
 import pandas as pd
 from pathlib import Path
+import shutil
+import subprocess
 
 from document_process import DocumentProcess
 
@@ -93,6 +95,45 @@ if "selected_result" not in st.session_state:
 with st.sidebar:
 
     st.header("⚙️ Settings")
+
+    # ========================================================
+    # SYSTEM DEPENDENCY STATUS
+    # ========================================================
+
+    st.markdown("### 🏗️ System Status")
+
+    pdfinfo_path = shutil.which("pdfinfo")
+
+    if pdfinfo_path:
+        st.success(f"✅ Poppler: {pdfinfo_path}")
+    else:
+        st.error("❌ Poppler not found")
+
+    tesseract_path = shutil.which("tesseract")
+
+    if tesseract_path:
+        st.success(f"✅ Tesseract: {tesseract_path}")
+    else:
+        st.error("❌ Tesseract not found")
+
+    if st.button(
+        "🔍 Check PDF Dependencies",
+        use_container_width=True
+    ):
+        st.write("Poppler:", shutil.which("pdfinfo"))
+        st.write("Tesseract:", shutil.which("tesseract"))
+
+        if shutil.which("pdfinfo"):
+            try:
+                result = subprocess.run(
+                    ["pdfinfo", "-v"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                st.code(result.stderr or result.stdout)
+            except Exception as error:
+                st.error(str(error))
 
     st.divider()
 

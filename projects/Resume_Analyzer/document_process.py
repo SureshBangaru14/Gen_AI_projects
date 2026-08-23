@@ -1,15 +1,8 @@
-# ============================================================
-
-# document_process.py
-
-# ============================================================
-
 import os
 
 import tempfile
 
 import re
-
 
 
 from src.ocr_extractor import OCRExtractor
@@ -41,7 +34,6 @@ from src.score_calculator import ScoreCalculator
 from src.result_formatter import ResultFormatter
 
 
-
 class DocumentProcess:
 
     # ========================================================
@@ -50,49 +42,15 @@ class DocumentProcess:
 
     # ========================================================
 
-    def __init__(
+    def __init__(self, resume_files=None, jd_input_method=None, jd_file_name=None, openai_api_key=None, generation_model="gpt-4o-mini", 
 
-        self,
+                 embedding_method="OpenAI Embeddings", embedding_model="text-embedding-3-small", similarity_method="Cosine Similarity", 
 
-        resume_files=None,
+                 chunking_method="Recursive Character Text Splitting", chunk_size=None, chunk_overlap=None, top_k=5, output_tokens=None, 
 
-        jd_input_method=None,
+                 safety_buffer_method="Percentage", safety_buffer_percent=20, fixed_safety_buffer=None, maximum_safety_buffer=None, 
 
-        jd_file_name=None,
-
-        openai_api_key=None,
-
-        generation_model="gpt-4o-mini",
-
-        embedding_method="OpenAI Embeddings",
-
-        embedding_model="text-embedding-3-small",
-
-        similarity_method="Cosine Similarity",
-
-        chunking_method="Recursive Character Text Splitting",
-
-        chunk_size=None,
-
-        chunk_overlap=None,
-
-        top_k=5,
-
-        output_tokens=None,
-
-        safety_buffer_method="Percentage",
-
-        safety_buffer_percent=20,
-
-        fixed_safety_buffer=None,
-
-        maximum_safety_buffer=None,
-
-        chroma_persist_directory="chroma_db",
-
-        chroma_collection_name="resume_collection"
-
-    ):
+                 chroma_persist_directory="chroma_db", chroma_collection_name="resume_collection"):
 
         self.resume_files = resume_files
 
@@ -116,75 +74,27 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        self.chunking_method = (
+        self.chunking_method = chunking_method
 
-            chunking_method
+        self.chunk_size = int(chunk_size) if chunk_size is not None else None
 
-        )
+        self.chunk_overlap = int(chunk_overlap) if chunk_overlap is not None else None
 
-        self.chunk_size = (
-
-            int(chunk_size)
-
-            if chunk_size is not None
-
-            else None
-
-        )
-
-        self.chunk_overlap = (
-
-            int(chunk_overlap)
-
-            if chunk_overlap is not None
-
-            else None
-
-        )
-
-        self.top_k = int(
-
-            top_k
-
-        )
+        self.top_k = int(top_k)
 
         self.output_tokens = output_tokens
 
-        self.safety_buffer_method = (
+        self.safety_buffer_method = safety_buffer_method
 
-            safety_buffer_method
+        self.safety_buffer_percent = safety_buffer_percent
 
-        )
+        self.fixed_safety_buffer = fixed_safety_buffer
 
-        self.safety_buffer_percent = (
+        self.maximum_safety_buffer = maximum_safety_buffer
 
-            safety_buffer_percent
+        self.chroma_persist_directory = chroma_persist_directory
 
-        )
-
-        self.fixed_safety_buffer = (
-
-            fixed_safety_buffer
-
-        )
-
-        self.maximum_safety_buffer = (
-
-            maximum_safety_buffer
-
-        )
-
-        self.chroma_persist_directory = (
-
-            chroma_persist_directory
-
-        )
-
-        self.chroma_collection_name = (
-
-            chroma_collection_name
-
-        )
+        self.chroma_collection_name = chroma_collection_name
 
         # ----------------------------------------------------
 
@@ -192,11 +102,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        self.prompt_builder = (
-
-            PromptBuilder()
-
-        )
+        self.prompt_builder = PromptBuilder()
 
         # ----------------------------------------------------
 
@@ -204,37 +110,13 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        model_config = (
+        model_config = ModelConfig.get_model_config(self.generation_model)
 
-            ModelConfig.get_model_config(
-
-                self.generation_model
-
-            )
-
-        )
-
-        self.context_window = int(
-
-            model_config[
-
-                "context_window"
-
-            ]
-
-        )
+        self.context_window = int(model_config['context_window'])
 
         if self.output_tokens is None:
 
-            self.output_tokens = int(
-
-                model_config[
-
-                    "default_output_tokens"
-
-                ]
-
-            )
+            self.output_tokens = int(model_config['default_output_tokens'])
 
         # ----------------------------------------------------
 
@@ -242,11 +124,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        self.safety_buffer = (
-
-            self.calculate_safety_buffer()
-
-        )
+        self.safety_buffer = self.calculate_safety_buffer()
 
     # ========================================================
 
@@ -390,25 +268,13 @@ class DocumentProcess:
 
             return ""
 
-        names = sorted(
-
-            [re.escape(x) for x in heading_names],
-
-            key=len,
-
-            reverse=True
-
-        )
+        names = sorted([re.escape(x) for x in heading_names], key=len, reverse=True)
 
         if not names:
 
             return ""
 
-        pattern = re.compile(
-
-            r"(?im)^\s*(?:#+\s*)?(?:" + "|".join(names) + r")\s*:?\s*$"
-
-        )
+        pattern = re.compile('(?im)^\\s*(?:#+\\s*)?(?:' + '|'.join(names) + ')\\s*:?\\s*$')
 
         matches = list(pattern.finditer(text))
 
@@ -418,7 +284,7 @@ class DocumentProcess:
 
         start = matches[0].end()
 
-        next_heading = re.search(r"(?im)^\s*#{0,6}\s*[A-Za-z][A-Za-z0-9 &/()+.-]{2,80}\s*:?[ **\t**]*$", text[start:])
+        next_heading = re.search(r"(?im)^\s*#{0,6}\s*[A-Za-z][A-Za-z0-9 &/()+.-]{2,80}\s*:?[ ****\t****]*$", text[start:])
 
         end = start + next_heading.start() if next_heading else len(text)
 
@@ -464,17 +330,9 @@ class DocumentProcess:
 
         """
 
-        required_section = self._find_section(
+        required_section = self._find_section(jd_text, self.REQUIRED_SECTION_NAMES)
 
-            jd_text, self.REQUIRED_SECTION_NAMES
-
-        )
-
-        optional_section = self._find_section(
-
-            jd_text, self.OPTIONAL_SECTION_NAMES
-
-        )
+        optional_section = self._find_section(jd_text, self.OPTIONAL_SECTION_NAMES)
 
         explicit_required = bool(required_section.strip())
 
@@ -512,41 +370,17 @@ class DocumentProcess:
 
                 if optional_section:
 
-                    non_optional_text = non_optional_text.replace(
+                    non_optional_text = non_optional_text.replace(optional_section, '')
 
-                        optional_section, ""
+                required_skills = self._extract_vocab_skills(non_optional_text)
 
-                    )
-
-                required_skills = self._extract_vocab_skills(
-
-                    non_optional_text
-
-                )
-
-        good_to_have_skills = self._extract_vocab_skills(
-
-            optional_section
-
-        )
+        good_to_have_skills = self._extract_vocab_skills(optional_section)
 
         # Never classify an optional skill as required when headings overlap.
 
-        optional_keys = {
+        optional_keys = {self._normalize_skill(x) for x in good_to_have_skills}
 
-            self._normalize_skill(x)
-
-            for x in good_to_have_skills
-
-        }
-
-        required_skills = [
-
-            x for x in required_skills
-
-            if self._normalize_skill(x) not in optional_keys
-
-        ]
+        required_skills = [x for x in required_skills if self._normalize_skill(x) not in optional_keys]
 
         return {
 
@@ -570,15 +404,7 @@ class DocumentProcess:
 
     def _skill_matches(self, required_skills, candidate_skills):
 
-        candidate_keys = {
-
-            self._normalize_skill(x)
-
-            for x in candidate_skills or []
-
-            if str(x or "").strip()
-
-        }
+        candidate_keys = {self._normalize_skill(x) for x in candidate_skills or [] if str(x or '').strip()}
 
         matched = []
 
@@ -598,17 +424,7 @@ class DocumentProcess:
 
                 # REST API/REST APIs and Scikit-Learn/Scikit Learn.
 
-                found = any(
-
-                    key == candidate_key
-
-                    or key in candidate_key
-
-                    or candidate_key in key
-
-                    for candidate_key in candidate_keys
-
-                )
+                found = any((key == candidate_key or key in candidate_key or candidate_key in key for candidate_key in candidate_keys))
 
                 if found:
 
@@ -626,17 +442,9 @@ class DocumentProcess:
 
         candidate_skills = analysis.get("candidate_skills", []) or []
 
-        matched_required, missing_required = self._skill_matches(
+        (matched_required, missing_required) = self._skill_matches(policy['required_skills'], candidate_skills)
 
-            policy["required_skills"], candidate_skills
-
-        )
-
-        matched_optional, missing_optional = self._skill_matches(
-
-            policy["good_to_have_skills"], candidate_skills
-
-        )
+        (matched_optional, missing_optional) = self._skill_matches(policy['good_to_have_skills'], candidate_skills)
 
         analysis["required_skills"] = policy["required_skills"]
 
@@ -650,17 +458,9 @@ class DocumentProcess:
 
         analysis["missing_good_to_have_skills"] = missing_optional
 
-        analysis["has_explicit_required_skills"] = policy[
+        analysis['has_explicit_required_skills'] = policy['has_explicit_required_skills']
 
-            "has_explicit_required_skills"
-
-        ]
-
-        analysis["required_skill_source"] = policy[
-
-            "required_skill_source"
-
-        ]
+        analysis['required_skill_source'] = policy['required_skill_source']
 
         # Existing UI fields continue to work.
 
@@ -688,11 +488,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        resume_data = (
-
-            self.process_resume()
-
-        )
+        resume_data = self.process_resume()
 
         # ----------------------------------------------------
 
@@ -700,15 +496,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        resume_text_map = (
-
-            self.process_resume_text(
-
-                resume_data
-
-            )
-
-        )
+        resume_text_map = self.process_resume_text(resume_data)
 
         # ----------------------------------------------------
 
@@ -716,11 +504,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        jd_text = (
-
-            self.process_jd()
-
-        )
+        jd_text = self.process_jd()
 
         # ----------------------------------------------------
 
@@ -728,17 +512,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        token_data = (
-
-            self.calculate_tokens(
-
-                resume_text_map,
-
-                jd_text
-
-            )
-
-        )
+        token_data = self.calculate_tokens(resume_text_map, jd_text)
 
         # ----------------------------------------------------
 
@@ -746,15 +520,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        context_data = (
-
-            self.calculate_context(
-
-                token_data
-
-            )
-
-        )
+        context_data = self.calculate_context(token_data)
 
         # ----------------------------------------------------
 
@@ -762,15 +528,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        chunk_data = (
-
-            self.calculate_chunking(
-
-                token_data
-
-            )
-
-        )
+        chunk_data = self.calculate_chunking(token_data)
 
         # ----------------------------------------------------
 
@@ -778,17 +536,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        resume_chunks = (
-
-            self.process_resume_chunks(
-
-                resume_text_map,
-
-                chunk_data
-
-            )
-
-        )
+        resume_chunks = self.process_resume_chunks(resume_text_map, chunk_data)
 
         # ----------------------------------------------------
 
@@ -796,15 +544,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        vector_data = (
-
-            self.prepare_vector_database(
-
-                resume_chunks
-
-            )
-
-        )
+        vector_data = self.prepare_vector_database(resume_chunks)
 
         # ----------------------------------------------------
 
@@ -812,21 +552,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        matching_results = (
-
-            self.search_resumes(
-
-                jd_text,
-
-                resume_text_map,
-
-                resume_chunks,
-
-                vector_data
-
-            )
-
-        )
+        matching_results = self.search_resumes(jd_text, resume_text_map, resume_chunks, vector_data)
 
         # ----------------------------------------------------
 
@@ -838,13 +564,7 @@ class DocumentProcess:
 
             file_name = item.get("file_name", "")
 
-            item["context_details"] = context_data.get(
-
-                file_name,
-
-                {}
-
-            )
+            item['context_details'] = context_data.get(file_name, {})
 
         # ----------------------------------------------------
 
@@ -1028,21 +748,7 @@ class DocumentProcess:
 
         ):
 
-            allowed = [
-
-                10,
-
-                20,
-
-                30,
-
-                40,
-
-                50,
-
-                60
-
-            ]
+            allowed = [10, 20, 30, 40, 50, 60]
 
             if (
 
@@ -1210,19 +916,7 @@ class DocumentProcess:
 
         ):
 
-            percentage_buffer = int(
-
-                self.context_window
-
-                *
-
-                self.safety_buffer_percent
-
-                /
-
-                100
-
-            )
+            percentage_buffer = int(self.context_window * self.safety_buffer_percent / 100)
 
             if (
 
@@ -1266,31 +960,11 @@ class DocumentProcess:
 
             try:
 
-                resume_data = (
+                resume_data = self.process_resume_pdf(resume_file)
 
-                    self.process_resume_pdf(
+                file_name = resume_data['file_name']
 
-                        resume_file
-
-                    )
-
-                )
-
-                file_name = (
-
-                    resume_data[
-
-                        "file_name"
-
-                    ]
-
-                )
-
-                resume_data_map[
-
-                    file_name
-
-                ] = resume_data
+                resume_data_map[file_name] = resume_data
 
             except Exception as error:
 
@@ -1324,17 +998,9 @@ class DocumentProcess:
 
         try:
 
-            file_bytes = (
+            file_bytes = resume_file.getvalue()
 
-                resume_file.getvalue()
-
-            )
-
-            original_file_name = (
-
-                resume_file.name
-
-            )
+            original_file_name = resume_file.name
 
             with tempfile.NamedTemporaryFile(
 
@@ -1350,11 +1016,7 @@ class DocumentProcess:
 
                 )
 
-                temp_pdf_path = (
-
-                    temp_file.name
-
-                )
+                temp_pdf_path = temp_file.name
 
             extractor = OCRExtractor()
 
@@ -1418,13 +1080,7 @@ class DocumentProcess:
 
         ):
 
-            page_text = page.get(
-
-                "page_data",
-
-                ""
-
-            )
+            page_text = page.get('page_data', '')
 
             if page_text:
 
@@ -1464,29 +1120,13 @@ class DocumentProcess:
 
         ) in resume_data_map.items():
 
-            full_text = (
-
-                self.get_full_resume_text(
-
-                    resume_data
-
-                )
-
-            )
+            full_text = self.get_full_resume_text(resume_data)
 
             # Preserve complete resume
 
-            resume_data[
+            resume_data['full_text'] = full_text
 
-                "full_text"
-
-            ] = full_text
-
-            resume_text_map[
-
-                file_name
-
-            ] = full_text
+            resume_text_map[file_name] = full_text
 
         return resume_text_map
 
@@ -1514,17 +1154,7 @@ class DocumentProcess:
 
         ):
 
-            processor = JDProcessor(
-
-                input_method=
-
-                    "Upload PDF",
-
-                pdf_file=
-
-                    self.jd_file_name
-
-            )
+            processor = JDProcessor(input_method='Upload PDF', pdf_file=self.jd_file_name)
 
             return processor.process()
 
@@ -1544,17 +1174,7 @@ class DocumentProcess:
 
         ):
 
-            processor = JDProcessor(
-
-                input_method=
-
-                    "Upload DOCX",
-
-                docx_file=
-
-                    self.jd_file_name
-
-            )
+            processor = JDProcessor(input_method='Upload DOCX', docx_file=self.jd_file_name)
 
             return processor.process()
 
@@ -1574,17 +1194,7 @@ class DocumentProcess:
 
         ):
 
-            processor = JDProcessor(
-
-                input_method=
-
-                    "Upload TXT",
-
-                txt_file=
-
-                    self.jd_file_name
-
-            )
+            processor = JDProcessor(input_method='Upload TXT', txt_file=self.jd_file_name)
 
             return processor.process()
 
@@ -1604,17 +1214,7 @@ class DocumentProcess:
 
         ):
 
-            processor = JDProcessor(
-
-                input_method=
-
-                    "Paste Text",
-
-                pasted_text=
-
-                    self.jd_file_name
-
-            )
+            processor = JDProcessor(input_method='Paste Text', pasted_text=self.jd_file_name)
 
             return processor.process()
 
@@ -1648,57 +1248,17 @@ class DocumentProcess:
 
     ):
 
-        token_counter = TokenCounter(
+        token_counter = TokenCounter(self.generation_model)
 
-            self.generation_model
+        schema = self.prompt_builder.get_response_schema()
 
-        )
+        system_prompt = self.prompt_builder.get_system_prompt()
 
-        schema = (
+        schema_tokens = token_counter.count_tokens(str(schema))
 
-            self.prompt_builder
+        system_prompt_tokens = token_counter.count_tokens(system_prompt)
 
-            .get_response_schema()
-
-        )
-
-        system_prompt = (
-
-            self.prompt_builder
-
-            .get_system_prompt()
-
-        )
-
-        schema_tokens = (
-
-            token_counter.count_tokens(
-
-                str(schema)
-
-            )
-
-        )
-
-        system_prompt_tokens = (
-
-            token_counter.count_tokens(
-
-                system_prompt
-
-            )
-
-        )
-
-        jd_tokens = (
-
-            token_counter.count_tokens(
-
-                jd_text
-
-            )
-
-        )
+        jd_tokens = token_counter.count_tokens(jd_text)
 
         resume_tokens = {}
 
@@ -1714,57 +1274,15 @@ class DocumentProcess:
 
         ) in resume_text_map.items():
 
-            prompt_data = (
+            prompt_data = self.prompt_builder.build(job_description=jd_text, resume_text=resume_text)
 
-                self.prompt_builder.build(
+            prompt_data_map[file_name] = prompt_data
 
-                    job_description=
+            user_prompt = prompt_data['user_prompt']
 
-                        jd_text,
+            resume_tokens[file_name] = token_counter.count_tokens(resume_text)
 
-                    resume_text=
-
-                        resume_text
-
-                )
-
-            )
-
-            prompt_data_map[
-
-                file_name
-
-            ] = prompt_data
-
-            user_prompt = (
-
-                prompt_data[
-
-                    "user_prompt"
-
-                ]
-
-            )
-
-            resume_tokens[
-
-                file_name
-
-            ] = token_counter.count_tokens(
-
-                resume_text
-
-            )
-
-            user_prompt_tokens[
-
-                file_name
-
-            ] = token_counter.count_tokens(
-
-                user_prompt
-
-            )
+            user_prompt_tokens[file_name] = token_counter.count_tokens(user_prompt)
 
         return {
 
@@ -1898,51 +1416,13 @@ class DocumentProcess:
 
     ):
 
-        token_counter = TokenCounter(
+        token_counter = TokenCounter(self.generation_model)
 
-            self.generation_model
+        user_prompt_template = self.prompt_builder.user_prompt_template
 
-        )
+        user_prompt_instruction = user_prompt_template.replace('{job_description}', '').replace('{resume_text}', '')
 
-        user_prompt_template = (
-
-            self.prompt_builder
-
-            .user_prompt_template
-
-        )
-
-        user_prompt_instruction = (
-
-            user_prompt_template
-
-            .replace(
-
-                "{job_description}",
-
-                ""
-
-            )
-
-            .replace(
-
-                "{resume_text}",
-
-                ""
-
-            )
-
-        )
-
-        instruction_tokens = (
-
-            token_counter.count_tokens(
-
-                user_prompt_instruction
-
-            )
-
-        )
+        instruction_tokens = token_counter.count_tokens(user_prompt_instruction)
 
         manager = ChunkManager(
 
@@ -2002,23 +1482,11 @@ class DocumentProcess:
 
         )
 
-        chunk_data[
+        chunk_data['embedding_method'] = self.embedding_method
 
-            "embedding_method"
+        chunk_data['embedding_model'] = self.embedding_model
 
-        ] = self.embedding_method
-
-        chunk_data[
-
-            "embedding_model"
-
-        ] = self.embedding_model
-
-        chunk_data[
-
-            "similarity_method"
-
-        ] = self.similarity_method
+        chunk_data['similarity_method'] = self.similarity_method
 
         # ----------------------------------------------------
 
@@ -2026,11 +1494,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        chunk_data[
-
-            "chunking_method"
-
-        ] = self.chunking_method
+        chunk_data['chunking_method'] = self.chunking_method
 
         # If app.py supplied an explicit chunk size/overlap,
 
@@ -2040,37 +1504,17 @@ class DocumentProcess:
 
         if self.chunk_size is not None:
 
-            chunk_data[
-
-                "chunk_size"
-
-            ] = self.chunk_size
+            chunk_data['chunk_size'] = self.chunk_size
 
         if self.chunk_overlap is not None:
 
-            chunk_data[
+            chunk_data['chunk_overlap'] = self.chunk_overlap
 
-                "chunk_overlap"
+        chunk_data['safety_buffer_method'] = self.safety_buffer_method
 
-            ] = self.chunk_overlap
+        chunk_data['safety_buffer_percent'] = self.safety_buffer_percent
 
-        chunk_data[
-
-            "safety_buffer_method"
-
-        ] = self.safety_buffer_method
-
-        chunk_data[
-
-            "safety_buffer_percent"
-
-        ] = self.safety_buffer_percent
-
-        chunk_data[
-
-            "safety_buffer_tokens"
-
-        ] = self.safety_buffer
+        chunk_data['safety_buffer_tokens'] = self.safety_buffer
 
         return chunk_data
 
@@ -2096,33 +1540,9 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        selected_chunking_method = (
+        selected_chunking_method = chunk_data.get('chunking_method', self.chunking_method)
 
-            chunk_data.get(
-
-                "chunking_method",
-
-                self.chunking_method
-
-            )
-
-        )
-
-        selected_chunk_size = int(
-
-            chunk_data.get(
-
-                "chunk_size",
-
-                self.chunk_size
-
-                if self.chunk_size is not None
-
-                else 500
-
-            )
-
-        )
+        selected_chunk_size = int(chunk_data.get('chunk_size', self.chunk_size if self.chunk_size is not None else 500))
 
         selected_chunk_overlap = int(
 
@@ -2144,13 +1564,7 @@ class DocumentProcess:
 
         if selected_chunk_overlap >= selected_chunk_size:
 
-            selected_chunk_overlap = max(
-
-                0,
-
-                selected_chunk_size - 1
-
-            )
+            selected_chunk_overlap = max(0, selected_chunk_size - 1)
 
         # ----------------------------------------------------
 
@@ -2190,17 +1604,9 @@ class DocumentProcess:
 
         ) in resume_text_map.items():
 
-            chunks = chunker.chunk_text(
+            chunks = chunker.chunk_text(resume_text)
 
-                resume_text
-
-            )
-
-            resume_chunks[
-
-                file_name
-
-            ] = []
+            resume_chunks[file_name] = []
 
             # ------------------------------------------------
 
@@ -2254,71 +1660,23 @@ class DocumentProcess:
 
                 ):
 
-                    chunk_text = str(
+                    chunk_text = str(chunk_item.get('text', '')).strip()
 
-                        chunk_item.get(
+                    chunk_id = chunk_item.get('chunk_id', index)
 
-                            "text",
+                    metadata = chunk_item.get('metadata', {})
 
-                            ""
-
-                        )
-
-                    ).strip()
-
-                    chunk_id = (
-
-                        chunk_item.get(
-
-                            "chunk_id",
-
-                            index
-
-                        )
-
-                    )
-
-                    metadata = (
-
-                        chunk_item.get(
-
-                            "metadata",
-
-                            {}
-
-                        )
-
-                    )
-
-                    character_count = (
-
-                        chunk_item.get(
-
-                            "character_count",
-
-                            len(chunk_text)
-
-                        )
-
-                    )
+                    character_count = chunk_item.get('character_count', len(chunk_text))
 
                 else:
 
-                    chunk_text = str(
-
-                        chunk_item
-
-                    ).strip()
+                    chunk_text = str(chunk_item).strip()
 
                     chunk_id = index
 
                     metadata = {}
 
-                    character_count = (
-
-                        len(chunk_text)
-
-                    )
+                    character_count = len(chunk_text)
 
                 if not chunk_text:
 
@@ -2328,27 +1686,9 @@ class DocumentProcess:
 
                 # available in metadata.
 
-                metadata = dict(
+                metadata = dict(metadata if isinstance(metadata, dict) else {})
 
-                    metadata
-
-                    if isinstance(
-
-                        metadata,
-
-                        dict
-
-                    )
-
-                    else {}
-
-                )
-
-                metadata[
-
-                    "chunking_method"
-
-                ] = selected_chunking_method
+                metadata['chunking_method'] = selected_chunking_method
 
                 resume_chunks[
 
@@ -2388,39 +1728,15 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        chunk_data[
+        chunk_data['chunking_method'] = selected_chunking_method
 
-            "chunking_method"
+        chunk_data['chunk_size'] = selected_chunk_size
 
-        ] = selected_chunking_method
+        chunk_data['chunk_overlap'] = selected_chunk_overlap
 
-        chunk_data[
+        total_chunks = sum((len(chunks) for chunks in resume_chunks.values()))
 
-            "chunk_size"
-
-        ] = selected_chunk_size
-
-        chunk_data[
-
-            "chunk_overlap"
-
-        ] = selected_chunk_overlap
-
-        total_chunks = sum(
-
-            len(chunks)
-
-            for chunks
-
-            in resume_chunks.values()
-
-        )
-
-        chunk_data[
-
-            "total_resume_chunks"
-
-        ] = total_chunks
+        chunk_data['total_resume_chunks'] = total_chunks
 
         return resume_chunks
 
@@ -2500,35 +1816,7 @@ class DocumentProcess:
 
                 })
 
-                safe_name = (
-
-                    file_name
-
-                    .replace(
-
-                        " ",
-
-                        "_"
-
-                    )
-
-                    .replace(
-
-                        "/",
-
-                        "_"
-
-                    )
-
-                    .replace(
-
-                        "\\\\",
-
-                        "_"
-
-                    )
-
-                )
+                safe_name = file_name.replace(' ', '_').replace('/', '_').replace('\\\\\\\\', '_')
 
                 ids.append(
 
@@ -2574,17 +1862,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        embeddings = (
-
-            embedding_manager
-
-            .embed_documents(
-
-                documents
-
-            )
-
-        )
+        embeddings = embedding_manager.embed_documents(documents)
 
         # ----------------------------------------------------
 
@@ -2628,19 +1906,15 @@ class DocumentProcess:
 
         embedding_dimension = 0
 
-        if embeddings:
+        try:
 
-            try:
+            if embeddings is not None:
 
-                embedding_dimension = len(
+                embedding_dimension = len(embeddings[0])
 
-                    embeddings[0]
+        except (IndexError, TypeError, AttributeError):
 
-                )
-
-            except Exception:
-
-                pass
+            embedding_dimension = 0
 
         return {
 
@@ -2708,23 +1982,7 @@ class DocumentProcess:
 
         # consume the Top-K budget and hide other resumes.
 
-        retrieval_top_k = max(
-
-            self.top_k,
-
-            int(
-
-                vector_data.get(
-
-                    "total_chunks",
-
-                    self.top_k
-
-                )
-
-            )
-
-        )
+        retrieval_top_k = max(self.top_k, int(vector_data.get('total_chunks', self.top_k)))
 
         retrieval_engine = RetrievalEngine(
 
@@ -2764,25 +2022,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        retrieval_results = (
-
-            retrieval_engine.search(
-
-                jd_text=
-
-                    jd_text,
-
-                resume_chunks=
-
-                    resume_chunks,
-
-                vector_data=
-
-                    vector_data
-
-            )
-
-        )
+        retrieval_results = retrieval_engine.search(jd_text=jd_text, resume_chunks=resume_chunks, vector_data=vector_data)
 
         # ----------------------------------------------------
 
@@ -2790,11 +2030,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        score_calculator = (
-
-            ScoreCalculator()
-
-        )
+        score_calculator = ScoreCalculator()
 
         # ----------------------------------------------------
 
@@ -2848,11 +2084,7 @@ class DocumentProcess:
 
         # ----------------------------------------------------
 
-        formatter = (
-
-            ResultFormatter()
-
-        )
+        formatter = ResultFormatter()
 
         final_results = []
 
@@ -2866,29 +2098,13 @@ class DocumentProcess:
 
         for retrieval_result in retrieval_results:
 
-            file_name = retrieval_result.get(
-
-                "file_name"
-
-            )
+            file_name = retrieval_result.get('file_name')
 
             if not file_name:
 
                 continue
 
-            current_score = retrieval_result.get(
-
-                "score",
-
-                retrieval_result.get(
-
-                    "retrieval_score",
-
-                    0.0
-
-                )
-
-            )
+            current_score = retrieval_result.get('score', retrieval_result.get('retrieval_score', 0.0))
 
             try:
 
@@ -2898,11 +2114,7 @@ class DocumentProcess:
 
                 current_score = 0.0
 
-            existing = retrieval_by_file.get(
-
-                file_name
-
-            )
+            existing = retrieval_by_file.get(file_name)
 
             if existing is None:
 
@@ -2938,21 +2150,9 @@ class DocumentProcess:
 
                     existing["score"] = current_score
 
-                    existing["candidate_name"] = retrieval_result.get(
+                    existing['candidate_name'] = retrieval_result.get('candidate_name', existing.get('candidate_name'))
 
-                        "candidate_name",
-
-                        existing.get("candidate_name")
-
-                    )
-
-                existing["chunks"] = (
-
-                    existing.get("chunks", [])
-
-                    + retrieval_result.get("chunks", [])
-
-                )
+                existing['chunks'] = existing.get('chunks', []) + retrieval_result.get('chunks', [])
 
         # ====================================================
 
@@ -2998,13 +2198,7 @@ class DocumentProcess:
 
             # ------------------------------------------------
 
-            retrieval_score = retrieval_result.get(
-
-                "score",
-
-                0.0
-
-            )
+            retrieval_score = retrieval_result.get('score', 0.0)
 
             # ------------------------------------------------
 
@@ -3062,13 +2256,7 @@ class DocumentProcess:
 
             # Good-to-Have skills separate.
 
-            analysis = self._apply_jd_skill_policy(
-
-                jd_text,
-
-                analysis
-
-            )
+            analysis = self._apply_jd_skill_policy(jd_text, analysis)
 
             # ------------------------------------------------
 
@@ -3172,29 +2360,9 @@ class DocumentProcess:
 
             )
 
-            analysis[
+            analysis['match_percentage'] = score_result.get('overall_match_percentage', 0.0)
 
-                "match_percentage"
-
-            ] = score_result.get(
-
-                "overall_match_percentage",
-
-                0.0
-
-            )
-
-            analysis[
-
-                "component_scores"
-
-            ] = score_result.get(
-
-                "component_scores",
-
-                {}
-
-            )
+            analysis['component_scores'] = score_result.get('component_scores', {})
 
             # Keep the explicit matched/missing lists from the
 
@@ -3202,29 +2370,9 @@ class DocumentProcess:
 
             # a generic LLM-derived list.
 
-            analysis[
+            analysis['matched_required_skills'] = analysis.get('matched_required_skills', [])
 
-                "matched_required_skills"
-
-            ] = analysis.get(
-
-                "matched_required_skills",
-
-                []
-
-            )
-
-            analysis[
-
-                "missing_required_skills"
-
-            ] = analysis.get(
-
-                "missing_required_skills",
-
-                []
-
-            )
+            analysis['missing_required_skills'] = analysis.get('missing_required_skills', [])
 
             # ------------------------------------------------
 
@@ -3248,25 +2396,11 @@ class DocumentProcess:
 
             # ------------------------------------------------
 
-            final_match_percentage = (
-
-                analysis.get(
-
-                    "match_percentage",
-
-                    0.0
-
-                )
-
-            )
+            final_match_percentage = analysis.get('match_percentage', 0.0)
 
             try:
 
-                final_match_percentage = float(
-
-                    final_match_percentage
-
-                )
+                final_match_percentage = float(final_match_percentage)
 
             except (
 
@@ -3278,19 +2412,7 @@ class DocumentProcess:
 
                 final_match_percentage = 0.0
 
-            final_match_percentage = max(
-
-                0.0,
-
-                min(
-
-                    100.0,
-
-                    final_match_percentage
-
-                )
-
-            )
+            final_match_percentage = max(0.0, min(100.0, final_match_percentage))
 
             # ------------------------------------------------
 
@@ -3298,17 +2420,7 @@ class DocumentProcess:
 
             # ------------------------------------------------
 
-            retrieved_chunks = (
-
-                retrieval_result.get(
-
-                    "chunks",
-
-                    []
-
-                )
-
-            )
+            retrieved_chunks = retrieval_result.get('chunks', [])
 
             # ------------------------------------------------
 
@@ -3624,29 +2736,11 @@ class DocumentProcess:
 
             # ------------------------------------------------
 
-            final_result[
+            final_result['match_percentage'] = round(final_match_percentage, 2)
 
-                "match_percentage"
+            final_result['retrieval_score'] = retrieval_score
 
-            ] = round(
-
-                final_match_percentage,
-
-                2
-
-            )
-
-            final_result[
-
-                "retrieval_score"
-
-            ] = retrieval_score
-
-            final_result[
-
-                "retrieval_method"
-
-            ] = self.similarity_method
+            final_result['retrieval_method'] = self.similarity_method
 
             final_results.append(
 
@@ -3706,11 +2800,7 @@ class DocumentProcess:
 
         ):
 
-            result[
-
-                "rank"
-
-            ] = rank
+            result['rank'] = rank
 
         # ====================================================
 
