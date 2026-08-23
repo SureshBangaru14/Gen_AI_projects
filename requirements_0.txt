@@ -1,0 +1,92 @@
+# =====================
+# Core Scientific Stack
+# =====================
+numpy
+pandas
+scipy
+tqdm
+requests
+pyyaml
+matplotlib
+python-dotenv
+pymupdf
+pdfplumber
+pytesseract
+pillow
+python-multipart
+streamlit
+requests
+
+# =====================
+# Machine Learning
+# =====================
+scikit-learn
+
+# =====================
+# PyTorch (CPU optimized)
+# IMPORTANT: install using CPU index separately if needed
+# =====================
+torch
+torchvision
+torchaudio
+
+# =====================
+# Hugging Face / LLM Stack
+# =====================
+transformers
+datasets
+accelerate
+sentencepiece
+tokenizers
+
+# =====================
+# Embeddings + RAG
+# =====================
+sentence-transformers
+faiss-cpu
+chromadb
+
+# =====================
+# LangChain Ecosystem
+# =====================
+langchain
+langchain-community
+langchain-core
+langchain-text-splitters
+
+# =====================
+# FastAPI Backend
+# =====================
+fastapi
+uvicorn[standard]
+pydantic
+
+# =====================
+# Image / Stable Diffusion (Inference only)
+# =====================
+diffusers
+safetensors
+Pillow
+
+# =====================
+# Utilities
+# =====================
+python-dotenv
+rich
+loguru
+
+# =====================
+# Dev Tools
+# =====================
+jupyter
+ipykernel
+
+
+
+# ===========================
+# Ollama
+# =============================
+
+# curl -fsSL https://ollama.com/install.sh | sh
+# ollama run mistral or ollama run qwen3:8b
+# pip3 install ollama langchain-ollama
