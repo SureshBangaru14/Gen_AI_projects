@@ -100,42 +100,42 @@ with st.sidebar:
     # SYSTEM DEPENDENCY STATUS
     # ========================================================
 
-    st.markdown("### 🏗️ System Status")
+    # st.markdown("### 🏗️ System Status")
 
-    pdfinfo_path = shutil.which("pdfinfo")
+    # pdfinfo_path = shutil.which("pdfinfo")
 
-    if pdfinfo_path:
-        st.success(f"✅ Poppler: {pdfinfo_path}")
-    else:
-        st.error("❌ Poppler not found")
+    # if pdfinfo_path:
+    #     st.success(f"✅ Poppler: {pdfinfo_path}")
+    # else:
+    #     st.error("❌ Poppler not found")
 
-    tesseract_path = shutil.which("tesseract")
+    # tesseract_path = shutil.which("tesseract")
 
-    if tesseract_path:
-        st.success(f"✅ Tesseract: {tesseract_path}")
-    else:
-        st.error("❌ Tesseract not found")
+    # if tesseract_path:
+    #     st.success(f"✅ Tesseract: {tesseract_path}")
+    # else:
+    #     st.error("❌ Tesseract not found")
 
-    if st.button(
-        "🔍 Check PDF Dependencies",
-        use_container_width=True
-    ):
-        st.write("Poppler:", shutil.which("pdfinfo"))
-        st.write("Tesseract:", shutil.which("tesseract"))
+    # if st.button(
+    #     "🔍 Check PDF Dependencies",
+    #     use_container_width=True
+    # ):
+    #     st.write("Poppler:", shutil.which("pdfinfo"))
+    #     st.write("Tesseract:", shutil.which("tesseract"))
 
-        if shutil.which("pdfinfo"):
-            try:
-                result = subprocess.run(
-                    ["pdfinfo", "-v"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                st.code(result.stderr or result.stdout)
-            except Exception as error:
-                st.error(str(error))
+    #     if shutil.which("pdfinfo"):
+    #         try:
+    #             result = subprocess.run(
+    #                 ["pdfinfo", "-v"],
+    #                 capture_output=True,
+    #                 text=True,
+    #                 timeout=10
+    #             )
+    #             st.code(result.stderr or result.stdout)
+    #         except Exception as error:
+    #             st.error(str(error))
 
-    st.divider()
+    # st.divider()
 
     # ========================================================
     # ARCHITECTURE DOWNLOAD
