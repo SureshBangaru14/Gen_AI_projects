@@ -1,3 +1,582 @@
+single ChromaDB chunk structure, add the embedding vector and embedding method/model as well.
+
+
+CHUNK + EMBEDDING RECORD
+│
+├── 1. id
+│      "id": "packing_001_p02_c006"
+│
+│      packing_001_p02_c006
+│      │           │    │
+│      │           │    └── c006 = Chunk 6
+│      │           │
+│      │           └─────── p02 = Page 2
+│      │
+│      └────────────────── packing_001 = Document
+│
+│      PURPOSE:
+│      Unique ID of the exact chunk/record in ChromaDB.
+│
+│
+├── 2. text
+│      "text": """
+│      Special instructions: Handle cartons carefully.
+│      Keep the shipment dry.
+│      Do not stack heavy materials on top of the cartons.
+│      """
+│
+│      text
+│      │
+│      └── Actual chunk content
+│
+│      PURPOSE:
+│      Original chunk text that is converted into
+│      an embedding vector.
+│
+│
+├── 3. embedding
+│      "embedding": [
+│          0.1234,
+│         -0.4567,
+│          0.7891,
+│          0.2345,
+│          ...
+│      ]
+│
+│      embedding
+│      │
+│      ├── Dimension 1 → 0.1234
+│      ├── Dimension 2 → -0.4567
+│      ├── Dimension 3 → 0.7891
+│      ├── Dimension 4 → 0.2345
+│      └── ...
+│
+│      PURPOSE:
+│      Numerical/vector representation of the chunk text.
+│      ChromaDB uses this vector for similarity search.
+│
+│
+├── 4. embedding_method
+│      "embedding_method": "sentence_transformer"
+│
+│      embedding_method
+│      │
+│      └── sentence_transformer
+│
+│      PURPOSE:
+│      Identifies which embedding technology was used.
+│
+│
+├── 5. embedding_model
+│      "embedding_model": "all-MiniLM-L6-v2"
+│
+│      embedding_model
+│      │
+│      └── all-MiniLM-L6-v2
+│
+│      PURPOSE:
+│      Identifies the exact embedding model used
+│      to generate the vector.
+│
+│
+└── 6. metadata
+       │
+       ├── document_id
+       │      "document_id": "packing_001"
+       │
+       │      packing_001
+       │      └── Original document
+       │
+       │
+       ├── file_name
+       │      "file_name": "packing_slip.pdf"
+       │
+       │      packing_slip.pdf
+       │      └── Original PDF
+       │
+       │
+       ├── file_type
+       │      "file_type": "pdf"
+       │
+       │      pdf
+       │      └── Document type
+       │
+       │
+       ├── page_number
+       │      "page_number": 2
+       │
+       │      2
+       │      └── Original PDF Page 2
+       │
+       │
+       ├── chunk_index
+       │      "chunk_index": 6
+       │
+       │      6
+       │      └── Sixth chunk
+       │
+       │
+       ├── ocr_used
+       │      "ocr_used": True
+       │
+       │      True
+       │      └── Scanned PDF was processed using OCR
+       │
+       │
+       └── chunk_method
+              "chunk_method": "recursive"
+              
+              recursive
+              └── Recursive chunking method
+              
+              
+              
+              
+Ex : 
+
+
+	{
+	    "id": "packing_001_p02_c006",
+
+	    "text": """
+	    Special instructions: Handle cartons carefully.
+	    Keep the shipment dry.
+	    Do not stack heavy materials on top of the cartons.
+
+	    Received by: ______________________
+	    Signature: _________________________
+	    Date: _____________________________
+	    Remarks: __________________________
+	    """,
+
+	    "embedding": [
+		0.1234,
+		-0.4567,
+		0.7891,
+		0.2345,
+		...
+	    ],
+
+	    "embedding_method": "sentence_transformer",
+
+	    "embedding_model": "all-MiniLM-L6-v2",
+
+	    "metadata": {
+		"document_id": "packing_001",
+		"file_name": "packing_slip.pdf",
+		"file_type": "pdf",
+		"page_number": 2,
+		"chunk_index": 6,
+		"ocr_used": True,
+		"chunk_method": "recursive"
+	    }
+	}
+
+
+
+################################################################################################################################################################
+
+
+Pinecone : 
+
+
+
+
+PINECONE RECORD
+│
+├── id
+│     │
+│     └── packing_001_p02_c006
+│
+│     packing_001_p02_c006
+│     │           │    │
+│     │           │    └── c006 = Chunk 6
+│     │           │
+│     │           └─────── p02 = Page 2
+│     │
+│     └────────────────── packing_001 = Document
+│
+├── values
+│     │
+│     └── [0.1234, -0.4567, 0.7891, ...]
+│
+│         └── Embedding vector
+│
+└── metadata
+      │
+      ├── document_id
+      │     └── packing_001
+      │
+      ├── file_name
+      │     └── packing_slip.pdf
+      │
+      ├── file_type
+      │     └── pdf
+      │
+      ├── page_number
+      │     └── 2
+      │
+      ├── chunk_index
+      │     └── 6
+      │
+      ├── ocr_used
+      │     └── True
+      │
+      ├── chunk_method
+      │     └── recursive
+      │
+      ├── embedding_method
+      │     └── sentence_transformer
+      │
+      ├── embedding_model
+      │     └── all-MiniLM-L6-v2
+      │
+      └── text
+            └── "Special instructions: Handle cartons..."
+            
+            
+            
+Ex :          
+            
+record = {
+    "id": "packing_001_p02_c006",
+
+    "values": [
+        0.1234,
+        -0.4567,
+        0.7891,
+        0.2345,
+        # ...
+    ],
+
+    "metadata": {
+        "document_id": "packing_001",
+        "file_name": "packing_slip.pdf",
+        "file_type": "pdf",
+
+        "page_number": 2,
+        "chunk_index": 6,
+
+        "ocr_used": True,
+        "chunk_method": "recursive",
+
+        "embedding_method": "sentence_transformer",
+        "embedding_model": "all-MiniLM-L6-v2",
+
+        "text": """
+        Special instructions: Handle cartons carefully.
+        Keep the shipment dry.
+        Do not stack heavy materials on top of the cartons.
+
+        Received by: ______________________
+        Signature: _________________________
+        Date: _____________________________
+        Remarks: __________________________
+        """
+    }
+}
+
+
+
+
+
+
+
+########################################################################################################################
+
+
+
+FAISS CHUNK + EMBEDDING RECORD
+│
+├── 1. id
+│      "id": "packing_001_p02_c006"
+│
+│      packing_001_p02_c006
+│      │           │    │
+│      │           │    └── c006 = Chunk 6
+│      │           │
+│      │           └─────── p02 = Page 2
+│      │
+│      └────────────────── packing_001 = Document
+│
+│      PURPOSE:
+│      Unique application-level ID of this exact chunk.
+│      FAISS does not inherently understand this string ID.
+│      Your application maintains the mapping.
+│
+│
+├── 2. text
+│      "text": """
+│      Special instructions: Handle cartons carefully.
+│      Keep the shipment dry.
+│      Do not stack heavy materials on top of the cartons.
+│
+│      Received by: ______________________
+│      Signature: _________________________
+│      Date: _____________________________
+│      Remarks: __________________________
+│      """
+│
+│      text
+│      │
+│      ├── Special instructions
+│      ├── Handle cartons carefully
+│      ├── Keep the shipment dry
+│      ├── Do not stack heavy materials
+│      ├── Received by
+│      ├── Signature
+│      ├── Date
+│      └── Remarks
+│
+│      PURPOSE:
+│      Actual chunk content.
+│      This text is passed to the embedding model.
+│
+│
+├── 3. embedding
+│      "embedding": [
+│          0.1234,
+│         -0.4567,
+│          0.7891,
+│          0.2345,
+│          ...
+│      ]
+│
+│      embedding
+│      │
+│      ├── Dimension 1 → 0.1234
+│      ├── Dimension 2 → -0.4567
+│      ├── Dimension 3 → 0.7891
+│      ├── Dimension 4 → 0.2345
+│      └── ...
+│
+│      PURPOSE:
+│      Numerical representation of the chunk.
+│      This vector is stored and searched by FAISS.
+│
+│
+├── 4. embedding_method
+│      "embedding_method": "sentence_transformer"
+│
+│      embedding_method
+│      │
+│      └── sentence_transformer
+│
+│      PURPOSE:
+│      Identifies the embedding technology used.
+│
+│
+├── 5. embedding_model
+│      "embedding_model": "all-MiniLM-L6-v2"
+│
+│      embedding_model
+│      │
+│      └── all-MiniLM-L6-v2
+│
+│      PURPOSE:
+│      Identifies the exact model that generated
+│      the embedding vector.
+│
+│
+├── 6. faiss_index
+│      "faiss_index": 5
+│
+│      faiss_index
+│      │
+│      └── 5
+│          │
+│          └── FAISS position 5
+│
+│              Embedding 6
+│                   │
+│                   ▼
+│              FAISS position 5
+│
+│      COMPLETE MAPPING:
+│
+│      Embedding 1 ─────────→ FAISS position 0
+│      Embedding 2 ─────────→ FAISS position 1
+│      Embedding 3 ─────────→ FAISS position 2
+│      Embedding 4 ─────────→ FAISS position 3
+│      Embedding 5 ─────────→ FAISS position 4
+│      Embedding 6 ─────────→ FAISS position 5
+│
+│      Therefore:
+│
+│      Chunk 6
+│         ↓
+│      Embedding 6
+│         ↓
+│      FAISS position 5
+│
+│      PURPOSE:
+│      Identifies the vector's position in the FAISS
+│      index and allows your application to map the
+│      retrieved vector back to the original chunk.
+│
+│
+└── 7. metadata
+       │
+       ├── document_id
+       │      "document_id": "packing_001"
+       │
+       │      packing_001
+       │      │
+       │      └── Original document
+       │
+       │      PURPOSE:
+       │      Identifies the PDF/document containing
+       │      this chunk.
+       │
+       │
+       ├── file_name
+       │      "file_name": "packing_slip.pdf"
+       │
+       │      packing_slip.pdf
+       │      │
+       │      └── Original PDF
+       │
+       │      PURPOSE:
+       │      Identifies the source file.
+       │
+       │
+       ├── file_type
+       │      "file_type": "pdf"
+       │
+       │      pdf
+       │      │
+       │      └── Source document type
+       │
+       │      PURPOSE:
+       │      Identifies the file format.
+       │
+       │
+       ├── page_number
+       │      "page_number": 2
+       │
+       │      2
+       │      │
+       │      └── Original PDF Page 2
+       │
+       │      PURPOSE:
+       │      Identifies where the chunk came from.
+       │
+       │
+       ├── chunk_index
+       │      "chunk_index": 6
+       │
+       │      6
+       │      │
+       │      └── Sixth chunk
+       │
+       │      PURPOSE:
+       │      Maintains the chunk's sequence/order.
+       │
+       │
+       ├── ocr_used
+       │      "ocr_used": True
+       │
+       │      True
+       │      │
+       │      └── Text came from scanned PDF OCR
+       │
+       │      PURPOSE:
+       │      Indicates that OCR was used to extract
+       │      the text from the scanned page.
+       │
+       │
+       └── chunk_method
+              "chunk_method": "recursive"
+              
+              recursive
+              │
+              └── Recursive chunking was used
+              
+              PURPOSE:
+              Identifies the method used to divide
+              the original OCR text into chunks.
+              
+              
+              
+              
+Ex : 
+
+
+
+1 PDF
+│
+└── Page 1
+     │
+     ├── Chunk 1
+     │     │
+     │     └── Embedding 1
+     │            │
+     │            └── FAISS index = 0
+     │
+     ├── Chunk 2
+     │     │
+     │     └── Embedding 2
+     │            │
+     │            └── FAISS index = 1
+     │
+     └── Chunk 3
+           │
+           └── Embedding 3
+                  │
+                  └── FAISS index = 2
+
+{
+    "id": "packing_001_p02_c006",
+
+    "text": """
+    Special instructions: Handle cartons carefully.
+    Keep the shipment dry.
+    Do not stack heavy materials on top of the cartons.
+
+    Received by: ______________________
+    Signature: _________________________
+    Date: _____________________________
+    Remarks: __________________________
+    """,
+
+    "embedding": [
+        0.1234,
+        -0.4567,
+        0.7891,
+        0.2345,
+        ...
+    ],
+
+    "embedding_method": "sentence_transformer",
+
+    "embedding_model": "all-MiniLM-L6-v2",
+
+    "faiss_index": 5,
+
+    "metadata": {
+        "document_id": "packing_001",
+        "file_name": "packing_slip.pdf",
+        "file_type": "pdf",
+        "page_number": 2,
+        "chunk_index": 6,
+        "ocr_used": True,
+        "chunk_method": "recursive"
+    }
+}
+
+
+############################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
 COMPLETE CHUNKING — 1 TO 50
 │
 ├── LEVEL 1 — BASIC
@@ -728,32 +1307,283 @@ COMPLETE CHUNKING — 1 TO 50
 
 		For example:
 
-			System Instructions       = 500 tokens
-			User Question             = 100 tokens
-			Retrieved Chunk 1         = 1,000 tokens
-			Retrieved Chunk 2         = 1,000 tokens
-			Retrieved Chunk 3         = 1,000 tokens
-			Conversation History      = 1,000 tokens
+			| Company       | Model             |      Context Window | Max Output |
+			| ------------- | ----------------- | ------------------: | ---------: |
+			| **OpenAI**    | GPT-5.5           |       **1,050,000** |    128,000 |
+			| **OpenAI**    | GPT-5.5 Pro       |       **1,050,000** |    128,000 |
+			| **Anthropic** | Claude Opus 5     |       **1,000,000** |    128,000 |
+			| **Anthropic** | Claude Sonnet 5   |       **1,000,000** |    128,000 |
+			| **Anthropic** | Claude Opus 4.7   |       **1,000,000** |    128,000 |
+			| **Anthropic** | Claude Opus 4.6   |       **1,000,000** |    128,000 |
+			| **Anthropic** | Claude Sonnet 4.6 |       **1,000,000** |     64,000 |
+			| **Anthropic** | Claude Haiku 4.5  |         **200,000** |     64,000 |
+			| **Google**    | Gemini 1.5 Pro    | **up to 2,000,000** |          — |
+			| **Google**    | Gemini 1.5 Flash  |       **1,000,000** |          — |
+			
+		
+		Example :
+		
+		
+			Model:
+				GPT-5.5
+
+				Maximum Context Window:
+				1,050,000 tokens
+
+				Maximum Output:
+				128,000 tokens
+
+			Imagine an LLM has:
+
+				SYSTEM PROMPT          =    5,000 tokens
+				USER PROMPT            =    2,000 tokens
+				CHAT HISTORY           =   10,000 tokens
+				RETRIEVED RAG CHUNKS   =  900,000 tokens
+				OTHER CONTEXT          =    5,000 tokens
+							 ───────────────
+				INPUT TOTAL            =  922,000 tokens
+				
+			Maximum Context :
+					Maximum Context  = 1,050,000
+
+					Used Input =   922,000
+
+					Remaining = 1,050,000 - 922,000 = 128,000 tokens
+
+				There is therefore 128,000 tokens of theoretical remaining capacity, but the actual output limit depends on the model/API and its input/output constraints.
+				
+				
+07 Maximum Token Limit :
+
+	- Maximum Token Limit means the maximum number of tokens an LLM can process within one context window for a single request/conversation turn.
+	- It is a hard boundary: if the required input and output exceed the model's supported limit, the request must be shortened, truncated, summarized, or split. 
+
+	Simple Definition :
+
+		- Maximum Token Limit = Maximum number of tokens the model can handle at one time.
+		- A token can be a complete word, part of a word, punctuation, or another tokenized unit.
+		- The exact number of characters or words represented by a token depends on the tokenizer and language.
+		
+		
+		*****Total Request Tokens ≤ Model Context Window
+		
+
+08. Minimum / Maximum Chunk Size
+
+	1. Definition
+
+		- Minimum / Maximum Chunk Size means defining the smallest and largest amount of text allowed in an individual chunk during document chunking.
+		
+		
+		Document
+		   │
+		    ▼
+		Chunking
+		   │
+		   ├── Minimum Chunk Size
+		   │       ↓
+		   │   Smallest acceptable chunk
+		   │
+		   └── Maximum Chunk Size
+			   ↓
+		       Largest acceptable chunk
+		       
+	Minimum Chunk Size = Don't create chunks smaller than this limit unless necessary.
+
+	Maximum Chunk Size = Don't allow a chunk to exceed this limit.
+	
+	
+	
+	Without limits:
+
+		Document
+		   │
+		   ├── Chunk 1 → 5 tokens
+		   ├── Chunk 2 → 3 tokens
+		   ├── Chunk 3 → 800 tokens
+		   ├── Chunk 4 → 2,000 tokens
+		   └── Chunk 5 → 7 tokens
+
+		This creates poor retrieval quality.
+
+	with limits:
+
+		Document
+		   │
+		   ▼
+		Chunking Rules
+		   │
+		   ├── Minimum = 100 tokens
+		   └── Maximum = 500 tokens
+		   │
+		   ▼
+		Meaningful Chunks
+		
+09 Top-K :
+
+	1. Definition
+
+		- Top-K means the number of most relevant chunks/documents returned from the vector database for a user's query.
+		
+	Simple Example : 
+
+		Suppose your PDF has 10 chunks:
+
+		Chunk 1 → Similarity = 0.41
+		Chunk 2 → Similarity = 0.92
+		Chunk 3 → Similarity = 0.73
+		Chunk 4 → Similarity = 0.88
+		Chunk 5 → Similarity = 0.32
+		Chunk 6 → Similarity = 0.95
+		Chunk 7 → Similarity = 0.51
+		Chunk 8 → Similarity = 0.81
+		Chunk 9 → Similarity = 0.67
+		Chunk 10 → Similarity = 0.29
+
+		If:
+
+			top_k = 5
+
+		the system returns:
+
+			Rank    Chunk       Similarity
+			───────────────────────────────
+			 1      Chunk 6       0.95
+			 2      Chunk 2       0.92
+			 3      Chunk 4       0.88
+			 4      Chunk 8       0.81
+			 5      Chunk 3       0.73
+			 
+			 
+10. Fixed-Size Chunking : 
+
+	1. Definition
+
+		Fixed-Size Chunking divides a document into chunks of approximately the same predefined size.
+
+		For example:
+
+		chunk_size = 500 tokens
+		
+		
+		
+	Advantages:
+	
+		✓ Very simple
+		✓ Easy to implement
+		✓ Fast
+		✓ Predictable chunk sizes
+		✓ Easy to scale
+		✓ Easy to tune
+		✓ Good baseline for RAG
+		✓ Useful for large plain-text documents
+
+	Disadvantages :
+			
+		can not split sentences
+		can not split paragraphs
+		can not split tables
+		can not split important concepts
+		Doesn't understand document meaning
+		May not separate question and answer
+		May not separate heading from its content
+		
+		
+	When Should You Use It?
+
+		Use fixed-size chunking when:
+
+			✓ Document is mostly plain text
+			✓ Structure is not important
+			✓ You need a simple baseline
+			✓ You need predictable chunk sizes
+			✓ You want fast preprocessing
+			✓ You are experimenting with RAG
+
+		Avoid relying on it alone when the document contains:
+
+			✗ Complex tables
+			✗ Legal clauses
+			✗ Structured forms
+			✗ Important headings
+			✗ Code
+			✗ Complex PDFs
+			✗ Layout-dependent information
 			
 			
-		Total:
+10. Character-Based Chunking : 
 
-			500
-			+ 100
-			+ 1000
-			+ 1000
-			+ 1000
-			+ 1000
-			──────
-			4600 tokens
+	1. Definition
 
-			If:
+		Character-Based Chunking divides text into chunks according to a specified number of characters.
 
-			 - Context Window = 8,000 tokens
+		For example:
 
-			then:
+		chunk_size = 500
 
-				Context Window = 8,000
-				Input Context  = 4,600
+		means:
 
-				There is therefore 3,400 tokens of theoretical remaining capacity, but the actual output limit depends on the model/API and its input/output constraints.
+		≈ 500 characters per chunk
+
+		It is different from token-based chunking because the limit is based on characters, not tokens.
+		
+		
+11. Token-Based Chunking :
+
+	1. Definition
+
+		Token-Based Chunking divides a document according to a specified number of tokens, instead of characters.
+
+		Document
+		   │
+		   ▼
+		Tokenizer
+		   │
+		   ▼
+		Tokens
+		   │
+		   ▼
+		Token-Based Chunking
+		   │
+		   ├── Chunk 1 → 500 tokens
+		   ├── Chunk 2 → 500 tokens
+		   ├── Chunk 3 → 500 tokens
+		   └── Chunk 4 → remaining tokens
+
+		This is especially useful for LLM/RAG systems because LLM context windows and output limits are measured in tokens.
+		
+		
+		
+	Advantages :
+			
+		✓ Directly controls token count
+		✓ Better aligned with LLM context windows
+		✓ Better context-budget planning
+		✓ Predictable token-based chunk sizes
+		✓ Useful for RAG
+		✓ Useful for long documents
+		✓ Helps control Top-K context
+		
+	Disadvantages :
+	
+		✗ Requires tokenizer
+		✗ Different models use different tokenizers
+		✗ Can split sentences
+		✗ Can split paragraphs
+		✗ Can split semantic units
+		✗ Tokenization adds processing overhead
+		✗ Token boundaries don't necessarily equal semantic boundaries
+		
+		
+	When Should You Use It?
+
+		Use token-based chunking when:
+
+			✓ Building RAG
+			✓ Working with LLMs
+			✓ Context-window management matters
+			✓ Token budget matters
+			✓ Long documents
+			✓ Need predictable token limits
+			✓ Testing different chunk sizes
+																		
