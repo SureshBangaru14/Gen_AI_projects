@@ -1586,4 +1586,234 @@ COMPLETE CHUNKING — 1 TO 50
 			✓ Long documents
 			✓ Need predictable token limits
 			✓ Testing different chunk sizes
-																		
+								
+
+12. Sentence-Based Chunking :
+
+	1. Definition
+
+		- Sentence-Based Chunking divides a document into chunks using sentences as the primary boundary.
+
+		- Instead of cutting the document after an arbitrary number of characters or tokens, the system tries to keep complete sentences together.
+		
+			DOCUMENT
+			   │
+			    ▼
+			Sentence Detection
+			   │
+			   ├── Sentence 1
+			   ├── Sentence 2
+			   ├── Sentence 3
+			   ├── Sentence 4
+			   └── Sentence 5
+			   │
+			    ▼
+			Group Sentences
+			   │
+			   ├── Chunk 1
+			   ├── Chunk 2
+			   └── Chunk 3
+		
+		- Sentence-Based Chunking = Split text at sentence boundaries and group sentences into meaningful chunks.
+		
+		
+		Advantages:
+		
+			✓ Preserves complete sentences
+			✓ Better semantic coherence
+			✓ Easy to understand
+			✓ Better than raw character splitting
+			✓ Useful for natural-language documents
+			✓ Good for RAG
+			✓ Works well for FAQs and policies
+			✓ Easy to combine with token limits
+			
+		Disadvantages :
+
+			✗ Sentence detection isn't perfect
+			✗ Very long sentences can create huge chunks
+			✗ Short sentences can create tiny chunks
+			✗ Tables don't behave like normal sentences
+			✗ Code doesn't behave like normal sentences
+			✗ OCR errors can confuse sentence detection
+			✗ Some PDFs have poor punctuation
+			
+		When to Use : 
+
+			Sentence-based chunking is a good choice for:
+
+				✓ HR policies
+				✓ FAQs
+				✓ Articles
+				✓ Emails
+				✓ Reports
+				✓ General business documents
+				✓ Knowledge-base articles
+				✓ Natural-language documents
+
+			Less suitable by itself for:
+
+				✗ Tables
+				✗ JSON
+				✗ XML
+				✗ Source code
+				✗ Forms
+				✗ Highly layout-dependent PDFs
+									
+									
+13. Paragraph-Based Chunking :
+
+	1. Definition
+
+		Paragraph-Based Chunking divides a document using paragraph boundaries as the primary chunking unit.
+
+		Instead of splitting every fixed number of characters or tokens, the system tries to keep the complete paragraph together.
+
+		DOCUMENT
+		   │
+		    ▼
+		Paragraph Detection
+		   │
+		   ├── Paragraph 1
+		   ├── Paragraph 2
+		   ├── Paragraph 3
+		   └── Paragraph 4
+		   │
+		    ▼
+		Paragraph Chunks
+		Simple Definition
+
+		Paragraph-Based Chunking = one or more complete paragraphs are grouped together to create a chunk.	
+		
+		
+		
+		
+		Advantages:
+		
+			✓ Preserves complete paragraphs
+			✓ Usually preserves one idea
+			✓ Better semantic coherence than raw character splitting
+			✓ Simple to implement
+			✓ Easy to understand
+			✓ Good for reports and policies
+			✓ Useful for natural-language documents
+			✓ Good baseline for RAG
+			
+		Disadvantages :
+		
+			✗ Paragraphs can be very large
+			✗ Paragraphs can be very small
+			✗ Poor formatting can break detection
+			✗ OCR can destroy paragraph boundaries
+			✗ Tables are not paragraphs
+			✗ Forms are not paragraphs
+			✗ Long paragraphs may exceed token limits	
+			
+			
+		When Should You Use It :
+
+			Good for :
+
+				✓ Articles
+				✓ HR policies
+				✓ Reports
+				✓ Documentation
+				✓ Emails
+				✓ Business documents
+				✓ Knowledge bases
+				✓ Normal text PDFs
+
+			Less suitable alone for :
+
+				✗ Tables
+				✗ JSON
+				✗ XML
+				✗ Source code
+				✗ Forms
+				✗ Highly structured documents
+				✗ Poor-quality OCR	
+				
+				
+				
+14. Line-Based Chunking : 
+
+	1. Definition
+
+		Line-Based Chunking splits a document using line boundaries (\n).
+
+		Each line can become an individual chunk, or multiple consecutive lines can be grouped into one chunk.
+
+		DOCUMENT
+		   │
+		    ▼
+		Detect Lines
+		   │
+		   ├── Line 1
+		   ├── Line 2
+		   ├── Line 3
+		   ├── Line 4
+		   └── Line 5
+		   │
+		    ▼
+		Group Lines
+		   │
+		   ├── Chunk 1
+		   ├── Chunk 2
+		   └── Chunk 3
+
+		Simple definition:
+
+		Line-Based Chunking = Split text based on newline boundaries.	
+		
+		
+		
+		Advantages :
+		
+			✓ Very simple
+			✓ Preserves line boundaries
+			✓ Useful for OCR text
+			✓ Useful for logs
+			✓ Useful for invoices
+			✓ Useful for packing slips
+			✓ Useful for receipts
+			✓ Easy to implement overlap
+
+		Disadvantages :
+
+			✗ A line may not contain a complete idea
+			✗ PDF/OCR line breaks may be incorrect
+			✗ One sentence may span multiple lines
+			✗ Lines can have very different lengths
+			✗ Not inherently token-aware
+			✗ Poor OCR can create many meaningless lines	
+			
+			
+			
+15. Page-Based Chunking :
+
+		1. Definition
+
+			Page-Based Chunking divides a document according to its original page boundaries.
+
+			For a PDF:
+
+				PDF
+				 │
+				 ├── Page 1 → Chunk 1
+				 ├── Page 2 → Chunk 2
+				 ├── Page 3 → Chunk 3
+				 └── Page 4 → Chunk 4
+
+				The important difference from the previous methods is:
+
+				Line-Based
+				    ↓
+				Line boundary
+
+				Paragraph-Based
+				    ↓
+				Paragraph boundary
+
+				Page-Based
+				    ↓
+				PDF page boundary			
