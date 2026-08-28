@@ -1816,4 +1816,936 @@ COMPLETE CHUNKING — 1 TO 50
 
 				Page-Based
 				    ↓
-				PDF page boundary			
+				PDF page boundary	
+				
+				
+					
+
+16. Recursive Chunking :
+
+		1. Definition :
+
+			Recursive Chunking is a chunking technique that tries to split text using a hierarchy of separators, starting with larger structural boundaries and progressively 
+			moving to smaller boundaries when the resulting piece is still too large.
+
+			In LangChain, the common implementation is:
+
+				RecursiveCharacterTextSplitter
+
+				The typical hierarchy is:
+
+					Document
+					   │
+					   ▼
+					Paragraph
+					   │
+					    ▼
+					  line
+					   │
+					    ▼
+					Sentence
+					   │
+					    ▼
+					  Word
+					   │
+					    ▼
+					Character
+
+					So instead of immediately cutting every 500 characters, Recursive Chunking tries to preserve meaningful boundaries first.
+					
+					
+					
+		Recursive :
+		
+				                    TEXT
+						      │
+						        ▼
+					       Try "\n\n"
+						      │
+					     ┌────────┴────────┐
+					     │                 │
+					  Fits?             Too large?
+					     │                 │
+					    YES                ▼
+					     │            Try "\n"
+					       ▼                  │
+					  Keep it       ┌──────┴──────┐
+							│             │
+						      Fits?       Too large?
+							│             │
+						       YES            ▼
+							│         Try ". "
+							▼             │
+						      Keep       ┌────┴────┐
+								 │         │
+							       Fits?   Too large?
+								 │         │
+								YES        ▼
+								 │       Try " "
+								 ▼         │
+							       Keep    ┌────┴────┐
+								       │         │
+								     Fits?   Too large?
+								       │         │
+								      YES        ▼
+								       │       Try ""
+								          ▼         │
+								     Keep    Character
+								     
+								     
+
+18. Structure-Aware Chunking :
+
+		1. Definition :
+
+			Structure-Aware Chunking divides a document according to its logical document structure rather than simply splitting every N characters or tokens.
+
+			It tries to preserve relationships such as:
+
+				Document
+				│
+				├── Title
+				│
+				├── Section
+				│   ├── Subsection
+				│   ├── Paragraph
+				│   └── List
+				│
+				├── Section
+				│   ├── Paragraph
+				│   └── Table
+				│
+				└── Section
+				    └── Paragraph
+				    
+				Simple Definition :
+
+					Structure-Aware Chunking = Create chunks based on the structure and meaning of the document.
+					
+					
+					
+		Why Structure-Aware Chunking :
+
+			Consider an HR policy:
+
+				HR POLICY
+				│
+				├── 1. Leave Policy
+				│     ├── Annual Leave
+				│     ├── Sick Leave
+				│     └── Maternity Leave
+				│
+				├── 2. Attendance Policy
+				│     ├── Working Hours
+				│     └── Late Attendance
+				│
+				└── 3. Benefits
+				      ├── Health Insurance
+				      └── Retirement
+
+				A fixed-size splitter might produce:
+
+					Chunk 1
+					────────────
+					Leave Policy
+					Annual Leave
+					Sick Leave
+					Attendance...
+
+					Chunk 2
+					────────────
+					Late Attendance
+					Benefits
+					Health Insurance...
+					
+					
+		What Structure Can Be Detected :
+
+			Structure-aware chunking can use:
+
+				Structure
+				│
+				├── Title
+				├── Heading
+				├── Subheading
+				├── Section
+				├── Paragraph
+				├── List
+				├── Table
+				├── Table Row
+				├── Key-Value Field
+				├── Page
+				└── Document Section
+				
+				
+				
+			For example, a resume:
+			
+
+				RESUME
+				│
+				├── Summary
+				│
+				├── Skills
+				│
+				├── Work Experience
+				│   ├── Company 1
+				│   ├── Company 2
+				│
+				├── Education
+				│
+				├── Certifications
+				│
+				└── Projects
+				
+				
+				
+		Advantages :
+		
+			✓ Preserves document meaning
+			✓ Preserves logical sections
+			✓ Better metadata
+			✓ Better retrieval context
+			✓ Useful for resumes
+			✓ Useful for HR policies
+			✓ Useful for manuals
+			✓ Useful for reports
+			✓ Useful for Markdown
+			✓ Useful for HTML
+			✓ Useful for structured documents
+
+		Disadvantages :
+
+			✗ Structure must be detected
+			✗ Scanned PDFs can be difficult
+			✗ OCR can destroy document structure
+			✗ Complex layouts require extra processing
+			✗ Tables need special handling
+			✗ Headers may be detected incorrectly
+			✗ More complex than fixed-size chunking
+			
+			
+19. Semantic Chunking :
+
+	1. Definition :
+
+		Semantic Chunking divides a document based on the meaning and semantic similarity of the text, rather than using only a fixed number of characters, tokens, or sentences.
+
+		Simple Definition :
+
+			Semantic Chunking = Split text when the meaning/topic changes significantly.
+
+			Instead of saying:
+
+				Every 500 characters → new chunk
+
+			semantic chunking asks:
+
+			Are these sentences talking about the same topic?
+				│
+				├── YES → keep together
+				│
+				└── NO  → create a new chunk
+				
+				
+				
+		Semantic Chunking Architecture :
+		
+				    DOCUMENT
+				       │
+				          ▼
+				  SENTENCES
+				       │
+				          ▼
+				 EMBEDDINGS
+				       │
+				          ▼
+			  COMPARE SEMANTIC SIMILARITY
+				       │
+			      ┌────────┴────────┐
+			      │                 │
+			  Similar            Different
+			      │                 │
+			         ▼                         ▼
+			Keep together       Split here
+			      │                 │
+			      └────────┬────────┘
+				          ▼
+				SEMANTIC CHUNKS
+				       │
+				          ▼
+				  EMBEDDINGS
+				       │
+				          ▼
+				 VECTOR DATABASE
+				 
+				 
+				 
+				 
+		Advantages :
+		
+			✓ Understands semantic meaning
+			✓ Doesn't depend only on character count
+			✓ Can preserve related sentences
+			✓ Can detect topic changes
+			✓ Useful for RAG
+			✓ Useful for long documents
+			✓ Can improve retrieval relevance
+			✓ Useful when sentence lengths vary
+			
+		Disadvantages :
+		
+			✗ Requires embeddings
+			✗ More computationally expensive
+			✗ Slower than fixed-size chunking
+			✗ Threshold selection matters
+			✗ Results can vary depending on embedding model
+			✗ More difficult to debug
+			✗ Very short documents may not benefit much
+			
+			
+34. Chunk Quality :
+
+	1. Definition :
+
+		- Chunk Quality means how well a chunk preserves the meaning, context, completeness, and usefulness of the original document for retrieval and RAG.
+		- Chunk quality refers to how well a chunk preserves the meaning, context, and relevant information of the original document. A good chunk should be semantically complete, coherent,relevant, appropriately sized, and contain sufficient context. Chunk quality directly affects embedding quality, retrieval accuracy, and ultimately the quality of the RAG answer.
+
+		A chunk can be small, correctly generated, and still be a poor-quality chunk.
+
+		The goal is not simply:
+
+			Create chunks
+
+			The goal is:
+
+				Create meaningful chunks
+					↓
+				Retrieve the correct chunk
+					↓
+				Give sufficient context to the LLM
+					↓
+				Generate an accurate answer
+				
+				
+				
+	What Makes a Good Chunk :
+
+		A high-quality chunk generally has:
+
+				GOOD CHUNK
+				    │
+			┌───────────┼───────────┐
+			▼                ▼               ▼
+		     Complete    Relevant    Context
+		       Idea
+			│           │           │
+			└───────────┼───────────┘
+				      ▼
+			      Self-Contained
+				    │
+				      ▼
+			     Easy to Retrieve
+
+		Important characteristics:
+
+			Semantic completeness
+			Context preservation
+			Relevant information
+			Logical boundaries
+			Appropriate size
+			Limited unnecessary content
+			Useful metadata
+			Good overlap when required
+			
+			
+			
+		                 CHUNK QUALITY
+				      │
+			┌─────────────┼─────────────┐
+			▼                  ▼                   ▼
+		   Completeness    Relevance     Context
+			│             │             │
+			└─────────────┼─────────────┘
+				         ▼
+				   Coherence
+				      │
+				         ▼
+				 Good Metadata
+				      │
+				         ▼
+			       Better Retrieval
+				      │
+				         ▼
+				  Better RAG
+				  
+				  
+				  
+35. Recursive + Semantic Hybrid Chunking :
+
+
+		1. Definition :
+
+			Recursive + Semantic Hybrid Chunking combines two chunking strategies:
+
+				Recursive Chunking
+					+
+				Semantic Chunking
+					↓
+				Hybrid Chunking
+
+					The idea is:
+
+						Semantic chunking first tries to keep sentences that belong to the same meaning/topic together.
+						Recursive chunking then controls the maximum chunk size and splits oversized semantic sections safely.
+
+						This gives you both:
+
+						Semantic coherence
+						Controlled chunk size
+						
+						
+						
+						
+						
+						                       DOCUMENT
+									   │
+									    ▼
+								    Split into Sentences
+									   │
+									    ▼
+								    Semantic Analysis
+									   │
+									    ▼
+								 Detect Topic Boundaries
+									   │
+							     ┌─────────────┼─────────────┐
+							       ▼                   ▼                   ▼
+							  Topic A       Topic B       Topic C
+							     │             │             │
+							     └─────────────┼─────────────┘
+									    ▼
+								  Semantic Chunks
+									   │
+									    ▼
+							      Check Maximum Chunk Size
+									   │
+								    Too Large?
+								    /       \
+								  Yes        No
+								   │          │
+								    ▼          │
+							     Recursive        │
+							      Splitting       │
+								   │          │
+								   └────┬─────┘
+									▼
+								 Final Chunks
+									│
+									▼
+								    Metadata
+									│
+									▼
+								    Embedding
+									│
+									▼
+								    Vector DB
+								    
+								    
+								    
+		Advantages :
+		
+			1. Better semantic coherence
+
+				Related sentences stay together.
+
+			2. Size control
+
+				Very large semantic chunks can be recursively split.
+
+			3. Overlap
+
+				You can add controlled overlap.
+
+			4. Better retrieval
+
+				Relevant context is more likely to be retrieved together.
+
+			5. Flexible
+
+				Works well with:
+
+					PDF
+					TXT
+					DOCX
+					HTML
+					Technical Documents
+					HR Policies
+					Financial Reports
+					
+					
+		
+		Disadvantages :
+		
+		
+			1. More expensive
+
+				Semantic chunking requires embeddings.
+
+					Recursive only
+					      ↓
+					Cheap
+
+					Semantic
+					      ↓
+					Embedding calculations
+
+					Hybrid
+					      ↓
+					More computation
+					
+			2. More complexity
+
+				There are two chunking stages.
+
+			3. Threshold tuning
+
+				Semantic boundaries depend on parameters such as:
+
+				breakpoint_threshold_type
+
+				and related breakpoint settings.
+
+			4. Not always necessary
+
+				For a simple structured document:
+
+					Heading
+					Paragraph
+					Heading
+					Paragraph
+
+					structure-aware chunking may already be sufficient.
+					
+					
+					
+36. Hierarchical Chunking :
+
+		1. Definition : 
+
+			Hierarchical Chunking divides a document into multiple levels of chunks instead of treating every chunk as an independent piece of text.
+
+			The document keeps its parent → child relationship.
+
+			Document
+			   │
+			   ├── Section
+			   │      │
+			   │      ├── Subsection
+			   │      │      ├── Child Chunk
+			   │      │      └── Child Chunk
+			   │      │
+			   │      └── Subsection
+			   │             ├── Child Chunk
+			   │             └── Child Chunk
+			   │
+			   └── Section
+				  ├── Child Chunk
+				  └── Child Chunk
+
+			The main idea is:
+
+				Retrieve a small, precise child chunk, but retain the larger parent context when generating the answer.
+				
+				
+				
+		Hierarchical Levels :
+
+			You can have multiple levels.
+
+				Level 0
+				Document
+				│
+				├── Level 1
+				│   Section
+				│
+				│   ├── Level 2
+				│   │   Subsection
+				│   │
+				│   │   ├── Level 3
+				│   │   │   Child Chunk
+				│   │   │
+				│   │   └── Level 3
+				│   │       Child Chunk
+				│   │
+				│   └── Level 2
+				│       Subsection
+				│
+				└── Level 1
+				    Section
+
+				For most RAG systems, 2–3 levels are usually enough.
+				
+				
+37. Parent-Child Chunking :
+
+
+		1. Definition :
+
+			Parent-Child Chunking is a RAG chunking technique where a large parent chunk contains broader context, while smaller child chunks contain precise pieces of information.
+
+			The important relationship is:
+
+				Document
+				   │
+				    ▼
+				Parent Chunk
+				   │
+				   ├── Child Chunk 1
+				   ├── Child Chunk 2
+				   └── Child Chunk 3
+
+				The child chunks are normally used for retrieval, while the parent chunk is used to provide context to the LLM.
+				
+				
+				
+				Remember this:
+
+					Parent
+					   ↓
+					Context
+
+					Child
+					   ↓
+					Precision
+					
+					
+					
+			Advantages :
+			
+			
+				Better retrieval precision
+
+				Small child chunks are easier to match to queries.
+
+				Better context
+
+				Parent provides broader context.
+
+				Good for long documents
+
+				Especially:
+
+					HR Policies
+					Legal Documents
+					Technical Manuals
+					Books
+					Research Papers
+					Financial Reports
+					Resumes
+					
+					
+					
+			Disadvantages :
+			
+			
+				More complex
+
+				You need parent lookup logic.
+
+				More storage
+
+				Parent and child information must be maintained.
+
+				More processing
+
+				You create two levels of chunks.
+
+				Duplicate parent retrieval
+
+				Several children may belong to the same parent.
+
+				For example:
+
+					Top 5 results
+
+					child_001 → parent_001
+					child_002 → parent_001
+					child_003 → parent_001
+					child_004 → parent_002
+					child_005 → parent_002
+					
+40. Late Chunking :
+
+
+		1. Definition : 
+
+			Late Chunking is a chunking technique where we first process/embed the entire document, and only after that create the chunks.
+
+			This is different from normal chunking.
+			
+			
+			
+46. Agentic Chunking :
+
+		1. Definition :
+
+			Agentic Chunking is an advanced chunking approach where an LLM/AI agent decides how the document should be chunked, instead of relying only on fixed rules such as character count, token count, or separators.
+
+		In normal chunking:
+
+				Document
+				   ↓
+				Fixed Rules
+				   ↓
+				Chunks
+
+		In agentic chunking:
+
+				Document
+				   ↓
+				AI Agent
+				   ↓
+				Understand Content
+				   ↓
+				Identify Topics / Sections
+				   ↓
+				Decide Boundaries
+				   ↓
+				Create Meaningful Chunks
+				   ↓
+				Validate Chunks
+
+		The important idea is:
+
+			The agent makes chunking decisions based on the meaning and structure of the content.
+			
+			
+			
+			
+			
+			Agentic Chunking Architecture
+			
+                                                  DOCUMENT
+						    │
+						      ▼
+					     Document Reader
+						    │
+						      ▼
+					       Text / OCR
+						    │
+						      ▼
+					    ┌───────────────┐
+					    │   AI AGENT    │
+					    │               │
+					    │ Understand    │
+					    │ Structure     │
+					    │ Topics        │
+					    │ Relationships │
+					    └───────┬───────┘
+						    │
+					┌───────────┼───────────┐
+					▼                ▼               ▼
+				     Section      Topic       Entity
+				     Detection   Detection   Detection
+					│           │           │
+					└───────────┼───────────┘
+						      ▼
+					     Chunk Decisions
+						    │
+						      ▼
+					    Chunk Construction
+						    │
+						      ▼
+					      Chunk Validation
+						    │
+						      ▼
+						Embeddings
+						    │
+						      ▼
+						 Vector DB
+						 
+						 
+						 
+						 
+47. LLM-Based Chunking :
+
+
+	1. Definition :
+
+		LLM-Based Chunking is a chunking technique where an LLM analyzes the document and decides how to divide the text into meaningful chunks.
+
+		Instead of only using:
+
+		Character count
+		Token count
+		Sentence boundaries
+		Fixed separators
+
+		the LLM understands the content and context and creates chunk boundaries.
+
+		Document
+		   │
+		    ▼
+		 LLM
+		   │
+		   ├── Understand content
+		   ├── Identify topics
+		   ├── Identify sections
+		   ├── Identify relationships
+		   └── Decide boundaries
+			  │
+			   ▼
+		       Chunks
+		       
+		       
+		       
+		       
+		                           DOCUMENT
+					       │
+					          ▼
+					  OCR / Parser
+					       │
+					          ▼
+					   Raw Text
+					       │
+					          ▼
+				     Initial Pre-Chunking
+					       │
+					          ▼
+					      LLM
+					       │
+				  ┌────────────┼────────────┐
+				  ▼                  ▼                 ▼
+			       Topics       Sections    Relationships
+				  │            │            │
+				  └────────────┼────────────┘
+					          ▼
+					Chunk Boundaries
+					       │
+					          ▼
+					 Final Chunks
+					       │
+					          ▼
+					  Embeddings
+					       │
+					          ▼
+					   Vector DB
+					   
+					   
+					   
+					   
+55. Chunk Deduplication :
+
+
+		Chunk Deduplication is the process of identifying and removing duplicate or highly similar chunks before storing them in the vector database.
+
+		The goal is to avoid storing the same information multiple times.
+		
+		
+		
+		Deduplication Strategies :
+		
+				Chunk Deduplication
+				│
+				├── Exact
+				│   └── String matching
+				│
+				├── Normalized
+				│   └── Lowercase / whitespace
+				│
+				├── Hash-Based
+				│   └── SHA-256
+				│
+				├── Near-Duplicate
+				│   └── Embedding similarity
+				│
+				├── Semantic
+				│   └── Semantic similarity
+				│
+				└── Metadata-Aware
+				    └── Document/page/section scope
+				    
+				    
+				    
+				    
+56. Chunk Compression :
+
+
+		Chunk Compression is the process of reducing the amount of information stored or passed from retrieved chunks while preserving the important information needed to answer the query.
+
+		In RAG, chunk compression is mainly used after retrieval and before sending context to the LLM.
+		
+		
+		
+		Chunk Compression
+			│
+			├── 01. Extractive Compression
+			│
+			├── 02. Abstractive Compression
+			│
+			├── 03. LLM-Based Compression
+			│
+			├── 04. Embedding-Based Filtering
+			│
+			├── 05. Sentence-Level Filtering
+			│
+			├── 06. Redundancy Removal
+			│
+			└── 07. Contextual Compression
+			
+			
+			
+57. Chunk Graphs :
+
+
+	Chunk Graphs are a way of representing relationships between chunks as a graph instead of treating every chunk independently.
+
+	Instead of:
+
+	Chunk 1
+	Chunk 2
+	Chunk 3
+	Chunk 4
+
+	we create relationships:
+
+		Chunk 1 ─────→ Chunk 2
+		   │             │
+		   ↓             ↓
+		Chunk 4 ←───── Chunk 3
+
+		This can improve retrieval when the answer requires relationships or context across multiple chunks.
+		
+		
+		
+		
+Production Checklist : 
+
+	Before deploying a RAG system:
+
+		□ Document classification
+		□ Correct parser
+		□ OCR fallback
+		□ Structure detection
+		□ Appropriate chunking strategy
+		□ Token-aware chunk size
+		□ Controlled overlap
+		□ Metadata
+		□ Page numbers
+		□ Section information
+		□ Chunk IDs
+		□ Chunk versioning
+		□ Deduplication
+		□ Chunk quality validation
+		□ Embedding model tracking
+		□ Vector database
+		□ Keyword search
+		□ Hybrid retrieval
+		□ Reranking
+		□ Context compression
+		□ Chunk relationships
+		□ Retrieval evaluation
+		□ Answer evaluation
+		□ Latency monitoring
+		□ Token/cost monitoring
