@@ -1,0 +1,32 @@
+{
+    "1001": {
+        "file_name": "vehicles.txt",
+        "page_no": 1,
+        "chunk_id": "vehicles.txt_p1_c1",
+        "text": "Car runs on petrol"
+    },
+    "1002": {
+        "file_name": "vehicles.txt",
+        "page_no": 1,
+        "chunk_id": "vehicles.txt_p1_c2",
+        "text": "Bus carries passengers"
+    },
+    "1003": {
+        "file_name": "vehicles.txt",
+        "page_no": 1,
+        "chunk_id": "vehicles.txt_p1_c3",
+        "text": "Bicycle runs without fuel"
+    },
+    "1004": {
+        "file_name": "vehicles.txt",
+        "page_no": 1,
+        "chunk_id": "vehicles.txt_p1_c4",
+        "text": "Boat travels on water"
+    },
+    "1005": {
+        "file_name": "vehicles.txt",
+        "page_no": 1,
+        "chunk_id": "vehicles.txt_p1_c5",
+        "text": "Plane flies in the sky"
+    }
+}

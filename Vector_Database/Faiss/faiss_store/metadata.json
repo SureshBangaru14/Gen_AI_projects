@@ -1,0 +1,58 @@
+{
+    "1001": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 1,
+        "chunk_no": 1,
+        "chunk_id": "p1_c1",
+        "text": "Employee HR Policy\n\nGeneral Workplace, Attendance & Leave Policy\n\nPurpose\n\nThis fictional policy provides general guidelines for employee attendance, working hours, leave, and workplace\nresponsibilities. It is intended as a sample document for OCR, chunking, embedding, ChromaDB, and retrieval testing.\n\n1. Working Hours\n\nThe standard working schedule is Monday through Friday. Employees are expected to work eight hours per day,\nexcluding approved meal breaks. Employees should report to work on time and remain available during scheduled\nworking hours.\n\n2. Attendance\n\nEmployees are responsible for recording attendance through the approved attendance system. Repeated late arrival,\nearly departure, or unexplained absence may result in attendance follow-up. Employees unable to attend work should\ninform their manager as early as possible.\n\n3. Leave Policy"
+    },
+    "1002": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 1,
+        "chunk_no": 2,
+        "chunk_id": "p1_c2",
+        "text": "3. Leave Policy\n\nEmployees may request casual leave, sick leave, or annual leave according to company rules. Leave requests should\nnormally be submitted before the requested absence. Managers may consider staffing requirements and business\npriorities when reviewing requests.\n\n4. Sick Leave\n\nEmployees who cannot work because of illness should notify their manager promptly. Where company rules require\nsupporting documentation for extended absence, the employee must provide it through the appropriate HR process.\n\n5. Unplanned Absence\n\nIf an unexpected situation prevents an employee from reporting to work, the employee should contact the manager or\ndesignated attendance contact as soon as possible. Failure to communicate an absence may result in attendance\nreview.\n\n6. Leave Approval\n\nSubmitting a leave request does not automatically mean the leave is approved. Employees should confirm approval\nbefore making commitments that depend on the leave being granted."
+    },
+    "1003": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 2,
+        "chunk_no": 1,
+        "chunk_id": "p2_c1",
+        "text": "Employee HR Policy — Page 2\n\nWork From Home, Conduct & Information Security\n\n7. Work From Home\n\nWork-from-home arrangements may be permitted when the employee's role, business needs, and team requirements\nallow it. Remote employees must remain available during agreed working hours, attend scheduled meetings, and\ncomplete assigned work on time.\n\n8. Remote Work Responsibilities\n\nEmployees working remotely are responsible for maintaining a suitable work environment, protecting company\ninformation, and using approved communication and collaboration tools.\n\n9. Workplace Conduct\n\nEmployees are expected to behave professionally and respectfully toward colleagues, customers, contractors, and\nbusiness partners. Harassment, intimidation, threats, discrimination, abusive communication, and deliberate disruption\nare not acceptable.\n\n10. Confidentiality"
+    },
+    "1004": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 2,
+        "chunk_no": 2,
+        "chunk_id": "p2_c2",
+        "text": "10. Confidentiality\n\nEmployees may access confidential business, employee, customer, financial, or technical information. Such\ninformation must only be accessed and shared for legitimate business purposes and according to company\nprocedures.\n\n11. Information Security\n\nCompany devices, accounts, passwords, documents, and systems must be protected from unauthorized access.\nEmployees should not share passwords. Suspicious emails, unauthorized access, lost devices, or possible data\nexposure should be reported to IT or the security contact.\n\n12. Company Resources\n\nCompany equipment, software, internet access, and communication systems are provided primarily for business\nactivities. Employees must not intentionally introduce malicious software, bypass security controls, or use systems for\nunauthorized activities.\n\n13. Employee Records"
+    },
+    "1005": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 2,
+        "chunk_no": 3,
+        "chunk_id": "p2_c3",
+        "text": "13. Employee Records\n\nEmployees should keep personal and employment information submitted to HR accurate and current. Changes to\ncontact information, emergency contacts, banking information, or required records should be reported through the\napproved HR process."
+    },
+    "1006": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 3,
+        "chunk_no": 1,
+        "chunk_id": "p3_c1",
+        "text": "Employee HR Policy — Page 3\n\nPerformance, Grievance, Discipline & Separation\n\n14. Performance Reviews\n\nEmployee performance may be reviewed periodically against role responsibilities, objectives, quality expectations,\nteamwork, and business outcomes. Managers should provide feedback and discuss areas requiring support or\nimprovement.\n\n15. Performance Improvement Plan\n\nWhen performance does not meet expected standards, the company may establish a performance improvement plan.\nThe plan may identify performance gaps, expected outcomes, support or training, review dates, and the period\navailable for improvement.\n\n16. Employee Grievance\n\nEmployees with a workplace concern should use the appropriate reporting channel where practical. A grievance may\nrelate to workplace conduct, management practices, working conditions, policy concerns, or other employment\nmatters. HR may review the concern and request information.\n\n17. Disciplinary Action"
+    },
+    "1007": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 3,
+        "chunk_no": 2,
+        "chunk_id": "p3_c2",
+        "text": "17. Disciplinary Action\n\nFailure to follow company policies or workplace requirements may result in corrective or disciplinary action depending\non the seriousness of the matter. Actions may include counseling, written warning, suspension where permitted, or\ntermination, subject to company procedures and applicable law.\n\n18. Resignation\n\nAn employee who chooses to resign should submit a formal resignation through the approved process. The applicable\nnotice period is determined by the employment agreement and company rules. Employees should support an orderly\ntransition during the notice period.\n\n19. Exit Process\n\nBefore leaving the organization, employees may be required to return company property, complete an exit interview,\ntransfer documents and responsibilities, and complete clearance activities. Final settlement will follow applicable\ncompany procedures and legal requirements.\n\n20. Policy Administration"
+    },
+    "1008": {
+        "file_name": "HR_Policy.pdf",
+        "page_no": 3,
+        "chunk_no": 3,
+        "chunk_id": "p3_c3",
+        "text": "20. Policy Administration\n\nHR may update, clarify, or replace policy provisions when business requirements, company procedures, or applicable\nlaws change. Employees should refer to the latest approved version and contact HR when clarification is required."
+    }
+}

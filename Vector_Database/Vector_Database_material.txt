@@ -4327,3 +4327,534 @@ ChromaDB
 │
 └── RAG
     └── Retrieve Context → LLM → Answer
+    
+    
+    
+    
+##################################################################################################################################
+################################ Faiss
+##################################################################################################################################
+
+
+
+FAISS
+│
+├── LEVEL 1 — BASIC
+│   │
+│   ├── 01. What is FAISS?
+│   ├── 02. What is a Vector?
+│   ├── 03. What is an Embedding?
+│   ├── 04. Vector Dimension
+│   ├── 05. Install FAISS
+│   ├── 06. Create Vectors
+│   ├── 07. Create Index
+│   ├── 08. is_trained
+│   ├── 09. add()
+│   ├── 10. search()
+│   └── 11. Top-K
+│
+├── LEVEL 2 — DISTANCE & SIMILARITY
+│   │
+│   ├── 12. L2 Distance
+│   ├── 13. IndexFlatL2
+│   ├── 14. Inner Product
+│   ├── 15. IndexFlatIP
+│   ├── 16. Cosine Similarity
+│   ├── 17. Vector Normalization
+│   └── 18. L2 vs IP vs Cosine
+│
+├── LEVEL 3 — TEXT + EMBEDDINGS
+│   │
+│   ├── 19. SentenceTransformer
+│   ├── 20. Text → Embedding
+│   ├── 21. Query → Embedding
+│   ├── 22. Embedding Dimension
+│   ├── 23. Semantic Search
+│   ├── 24. Top-K Retrieval
+│   └── 25. Similarity Score
+│
+├── LEVEL 4 — IDs + METADATA
+│   │
+│   ├── 26. FAISS Vector IDs
+│   ├── 27. IndexIDMap
+│   ├── 28. add_with_ids()
+│   ├── 29. Metadata Mapping
+│   ├── 30. JSON Metadata
+│   ├── 31. Document Retrieval
+│   └── 32. File/Page/Chunk Mapping
+│
+├── LEVEL 5 — PERSISTENCE
+│   │
+│   ├── 33. Save FAISS Index
+│   ├── 34. Load FAISS Index
+│   ├── 35. Save Metadata
+│   ├── 36. Load Metadata
+│   └── 37. Index + Metadata Synchronization
+│
+├── LEVEL 6 — RAG
+│   │
+│   ├── 38. Document Loading
+│   ├── 39. Text Extraction
+│   ├── 40. Chunking
+│   ├── 41. Chunk Embeddings
+│   ├── 42. FAISS Retrieval
+│   ├── 43. Query → Top-K Chunks
+│   ├── 44. Context Construction
+│   ├── 45. LLM
+│   └── 46. Complete RAG
+│
+└── LEVEL 7 — ADVANCED / PRODUCTION
+    │
+    ├── 47. HNSW
+    ├── 48. IVF
+    ├── 49. nlist
+    ├── 50. nprobe
+    ├── 51. Product Quantization
+    ├── 52. IVFPQ
+    ├── 53. Exact vs Approximate Search
+    ├── 54. Index Training
+    ├── 55. Incremental Updates
+    ├── 56. Delete / Replace
+    ├── 57. GPU FAISS
+    ├── 58. Performance Optimization
+    ├── 59. Recall@K / Evaluation
+    ├── 60. Production Architecture
+    └── 61. Production RAG Project
+
+
+LEVEL 1 Basic :
+
+01. What is FAISS
+
+		FAISS = Facebook AI Similarity Search.
+
+		It is an open-source library designed for efficient similarity search and clustering of dense vectors.
+
+		Think:
+
+			Text
+			  ↓
+		    Embedding Model
+			  ↓
+		       Vectors
+			  ↓
+			FAISS
+			  ↓
+		   Similarity Search
+			  ↓
+		    Similar Vectors
+
+		Important:
+
+			FAISS is NOT the embedding model.
+
+			FAISS does NOT convert text into embeddings.
+
+			FAISS is the search/indexing layer.
+			
+
+02. What is a Vector
+
+		A vector is a list of numerical values.
+
+		Example:
+
+			[1.0, 2.0]
+
+		Another example:
+
+			[1.2, 2.1]
+
+		Another:
+
+			[5.0, 6.0]
+
+		Think:
+
+			Vector
+			   ↓
+			[1.0, 2.0]
+			   ↓
+			Numbers representing some information
+
+		For FAISS:
+
+			Text
+			 ↓
+			Embedding
+			 ↓
+			Vector
+			 ↓
+			FAISS
+
+			FAISS works with vectors, not raw text.
+
+		
+FAISS vs ChromaDB :
+
+		This is particularly important for your projects.
+
+		FAISS :
+
+			Primarily a vector similarity-search library.
+
+			FAISS
+			 ↓
+			Vector Index
+			 ↓
+			Search
+			
+		ChromaDB :
+
+			A higher-level vector database that manages things such as:
+
+				Documents
+				Embeddings
+				Metadata
+				Collections
+				Persistence
+				Similarity Search
+				
+				
+				
+		FAISS
+		   ↓
+		Vector Search Engine
+
+		ChromaDB
+		   ↓
+		Vector Database
+		   ├── Documents
+		   ├── Embeddings
+		   ├── Metadata
+		   └── Search
+
+		You can build a complete vector-store system around FAISS, but you generally need to manage metadata/storage yourself.
+		
+		
+		
+03. What is an Embedding
+
+	An embedding is a numerical representation of data such as text, image, audio, etc.
+
+	Example:
+
+		"Car runs on petrol"
+
+		An embedding model converts it into numbers:
+
+		"Car runs on petrol"
+			  ↓
+		    Embedding Model
+			  ↓
+		[0.12, -0.45, 0.78, 0.21, ...]
+
+		The vector may contain hundreds of numbers.
+
+		For example:
+
+			[0.12, -0.45, 0.78, 0.21, 0.56, ...]
+
+	Think:
+
+		Human Language
+		      ↓
+		Embedding Model
+		      ↓
+		Numerical Representation
+		      ↓
+		Vector
+
+	Important:
+
+		Embedding Model → creates vector
+
+		FAISS → searches vectors
+		
+
+04. What is Vector Dimension
+
+		Vector dimension = number of values inside a vector.
+
+		Example:
+
+			vector = [1.0, 2.0]
+
+			Here:
+
+				Dimension = 2
+
+		Another:
+
+			vector = [1.0, 2.0, 3.0, 4.0]
+
+			Here:
+
+				Dimension = 4
+
+		For an embedding model:
+
+			Text
+			 ↓
+			Embedding Model
+			 ↓
+			[0.12, -0.45, 0.78, ...]
+			 ↓
+			384 numbers
+
+		Then:
+
+			Vector Dimension = 384
+			
+			
+		Important FAISS rule:
+
+				All vectors added to one FAISS index
+				must have the same dimension.
+
+				Example:
+
+					Vector 1 → 384 dimensions
+					Vector 2 → 384 dimensions
+					Vector 3 → 384 dimensions
+
+				Good:
+
+					384
+					384
+					384
+					384
+
+				Not good:
+
+					384
+					768
+					384
+					1536
+							
+							
+07. Create FAISS Index
+
+		FAISS needs an index to store and search vectors.
+
+			import faiss
+
+			dimension = 2
+
+			index = faiss.IndexFlatL2(dimension)
+
+		Here:
+
+			dimension = 2
+
+			because our vectors are:
+
+			[1.0, 2.0]
+			[1.1, 2.1]
+			[5.0, 6.0]
+			[5.1, 6.1]
+
+			Each vector has 2 values.
+
+		Think:
+
+			Vectors
+			   ↓
+			[1.0, 2.0]
+			[1.1, 2.1]
+			[5.0, 6.0]
+			[5.1, 6.1]
+			   ↓
+			FAISS Index
+			   ↓
+			IndexFlatL2
+
+		IndexFlatL2 is one of the simplest FAISS indexes.
+
+		For now, remember:
+
+			Index = structure used by FAISS
+				to store/search vectors
+				
+				
+08. What is is_trained
+
+		FAISS indexes have a property called:
+
+			index.is_trained
+
+		Example:
+
+			print(index.is_trained)
+
+			Output:
+
+			True
+
+		It tells us whether the FAISS index is ready for adding vectors.
+		
+		
+		For IndexFlatL2:
+
+			IndexFlatL2
+			     ↓
+			No separate training required
+			     ↓
+			is_trained = True
+
+			Think:
+
+				Create Index
+				     ↓
+				Is index trained?
+				     ↓
+				index.is_trained
+
+			For basic IndexFlatL2, you don't need to call a separate training step.
+			
+			
+09. What is add()
+
+		add() is used to add vectors into the FAISS index.
+
+			index.add(vectors)
+
+			Before:
+
+				FAISS Index
+				     ↓
+				0 vectors
+
+			After:
+
+				index.add(vectors)
+				     ↓
+				FAISS Index
+				     ↓
+				4 vectors
+
+		You can check the number of vectors:
+
+			print(index.ntotal)
+
+			Output:
+
+				4
+			
+10. What is search()
+
+	search() is used to find vectors that are most similar to a query vector.
+
+	Example query:
+
+		query = np.array([
+		    [1.05, 2.05]
+		], dtype="float32")
+
+	We ask FAISS:
+
+		Which stored vectors are closest
+		to [1.05, 2.05] ?
+
+	Use:
+
+		distances, indices = index.search(query, 2)
+
+	Here:
+
+		query
+		  ↓
+		[1.05, 2.05]
+		  ↓
+		FAISS
+		  ↓
+		Search
+		  ↓
+		Top 2 similar vectors
+		
+		
+11. What is Top-K
+
+		Top-K = number of results we want from FAISS.
+
+		Example:
+
+			k = 2
+
+			distances, indices = index.search(query, k)
+
+			Here:
+
+				k = 2
+
+		means:
+
+			Return the 2 most similar vectors.
+
+		If:
+
+			k = 1
+
+			then:
+
+				Return 1 result
+				
+				
+				
+LEVEL 2 — DISTANCE & SIMILARITY :
+
+		12. L2 Distance
+		13. IndexFlatL2
+		14. Inner Product
+		15. IndexFlatIP
+		16. Cosine Similarity
+		17. Vector Normalization
+		18. L2 vs IP vs Cosine
+		
+		
+		Complete Concept :
+		
+				    	   DOCUMENTS
+						↓
+				      Embedding Model
+						↓
+					   Embeddings
+						↓
+				      ┌─────────┴─────────┐
+				        ↓                            ↓
+				 IndexFlatL2         IndexFlatIP
+				      ↓                             ↓
+				  L2 Distance       Inner Product
+				      ↓                             ↓
+			       Smaller = Better      Higher = Better
+						             ↓
+						 Normalize Vectors
+						            ↓
+						 Cosine Similarity
+						 
+		13. IndexFlatL2
+
+			IndexFlatL2 performs exact nearest-neighbor search using L2 distance.
+
+			index = faiss.IndexFlatL2(dimension)	 
+			
+		15. IndexFlatIP
+
+			IndexFlatIP performs exact search using Inner Product.
+
+			index = faiss.IndexFlatIP(dimension)
+			
+		17. Vector Normalization
+
+			Before using:
+
+				IndexFlatIP
+
+				for cosine similarity, normalize the vectors.
+
+				faiss.normalize_L2(embeddings)
+
+				And normalize the query:
+
+				faiss.normalize_L2(query_embedding)
+

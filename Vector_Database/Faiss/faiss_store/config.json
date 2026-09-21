@@ -1,0 +1,9 @@
+{
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "dimension": 384,
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "distance": "Inner Product",
+    "similarity": "Cosine Similarity",
+    "total_vectors": 8
+}

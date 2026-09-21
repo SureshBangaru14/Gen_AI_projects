@@ -1,0 +1,369 @@
+RERANKING
+│
+├── LEVEL 1 — BASIC
+│
+│   ├── 01. Reranking Fundamentals
+│   │   ├── What is Reranking?
+│   │   ├── Why Reranking is Needed
+│   │   ├── Retrieval vs Reranking
+│   │   ├── First-Stage Retrieval
+│   │   ├── Second-Stage Ranking
+│   │   ├── Precision Improvement
+│   │   └── Context Quality Improvement
+│   │
+│   ├── 02. Search & Ranking Basics
+│   │   ├── Query
+│   │   ├── Document
+│   │   ├── Candidate Documents
+│   │   ├── Top-K Retrieval
+│   │   ├── Ranking
+│   │   └── Final Top-N
+│   │
+│   ├── 03. Similarity Concepts
+│   │   ├── Similarity Score
+│   │   ├── Relevance Score
+│   │   ├── Distance Score
+│   │   ├── Cosine Similarity
+│   │   ├── Euclidean Distance
+│   │   └── Dot Product
+│   │
+│   ├── 04. Top-K Retrieval
+│   │   ├── Top-5
+│   │   ├── Top-10
+│   │   ├── Top-20
+│   │   ├── Top-50
+│   │   └── Retrieval Pool
+│   │
+│   ├── 05. Ranking Function
+│   │   ├── Score Calculation
+│   │   ├── Sorting
+│   │   ├── Higher Score = More Relevant
+│   │   └── Lower Score = Less Relevant
+│   │
+│   ├── 06. Threshold Filtering
+│   │   ├── Minimum Score
+│   │   ├── Maximum Results
+│   │   ├── Relevance Threshold
+│   │   └── Removing Irrelevant Documents
+│   │
+│   └── 07. Simple Reranking
+│       ├── Retrieve Documents
+│       ├── Calculate Scores
+│       ├── Sort Scores
+│       └── Return Top Results
+│
+│
+├── LEVEL 2 — INTERMEDIATE
+│
+│   ├── 08. Retrieval Pipeline
+│   │   ├── User Query
+│   │   ├── Query Embedding
+│   │   ├── Vector Search
+│   │   ├── Candidate Retrieval
+│   │   ├── Reranking
+│   │   └── Final Context
+│   │
+│   ├── 09. Two-Stage Retrieval
+│   │   ├── Stage 1 — Fast Retrieval
+│   │   ├── Stage 2 — Accurate Reranking
+│   │   ├── Recall Optimization
+│   │   └── Precision Optimization
+│   │
+│   ├── 10. Bi-Encoder
+│   │   ├── Query Encoder
+│   │   ├── Document Encoder
+│   │   ├── Independent Encoding
+│   │   ├── Embeddings
+│   │   └── Vector Similarity
+│   │
+│   ├── 11. Cross-Encoder
+│   │   ├── Query + Document Pair
+│   │   ├── Joint Encoding
+│   │   ├── Token-Level Attention
+│   │   ├── Relevance Prediction
+│   │   └── Higher Accuracy
+│   │
+│   ├── 12. Bi-Encoder vs Cross-Encoder
+│   │   ├── Speed
+│   │   ├── Accuracy
+│   │   ├── Scalability
+│   │   ├── Memory
+│   │   └── Use Cases
+│   │
+│   ├── 13. Score Normalization
+│   │   ├── Min-Max Scaling
+│   │   ├── Z-Score
+│   │   ├── Cosine Score Normalization
+│   │   └── Combining Different Scores
+│   │
+│   ├── 14. Hybrid Ranking
+│   │   ├── Keyword Score
+│   │   ├── BM25 Score
+│   │   ├── Semantic Score
+│   │   ├── Vector Score
+│   │   ├── Weighted Score
+│   │   └── Final Ranking
+│   │
+│   ├── 15. BM25 + Vector Search
+│   │   ├── BM25 Retrieval
+│   │   ├── Dense Retrieval
+│   │   ├── Candidate Union
+│   │   ├── Score Fusion
+│   │   └── Reranking
+│   │
+│   └── 16. Reranking Models
+│       ├── BGE Reranker
+│       ├── Cross-Encoder
+│       ├── MS-MARCO
+│       └── Sentence Transformer Rerankers
+│
+│
+├── LEVEL 3 — ADVANCED
+│
+│   ├── 17. BGE Reranker
+│   │   ├── bge-reranker-base
+│   │   ├── bge-reranker-large
+│   │   ├── Query-Document Scoring
+│   │   ├── Batch Inference
+│   │   └── Production Usage
+│   │
+│   ├── 18. Cohere Rerank
+│   │   ├── Rerank API
+│   │   ├── Query
+│   │   ├── Documents
+│   │   ├── Relevance Score
+│   │   └── Enterprise Search
+│   │
+│   ├── 19. Jina Reranker
+│   │   ├── Jina Reranker
+│   │   ├── Query-Document Ranking
+│   │   ├── Long Documents
+│   │   └── Multilingual Retrieval
+│   │
+│   ├── 20. Cross-Encoder Models
+│   │   ├── MS-MARCO
+│   │   ├── MiniLM Cross Encoder
+│   │   ├── BGE
+│   │   └── Domain-Specific Models
+│   │
+│   ├── 21. Reranking with Vector Databases
+│   │   ├── ChromaDB
+│   │   ├── FAISS
+│   │   ├── Pinecone
+│   │   ├── Qdrant
+│   │   └── Weaviate
+│   │
+│   ├── 22. RAG Reranking
+│   │   ├── Query
+│   │   ├── Retrieve Top-50
+│   │   ├── Rerank Top-50
+│   │   ├── Select Top-5
+│   │   ├── Context Construction
+│   │   └── LLM Generation
+│   │
+│   ├── 23. Context Optimization
+│   │   ├── Remove Irrelevant Chunks
+│   │   ├── Remove Duplicate Chunks
+│   │   ├── Context Ordering
+│   │   ├── Context Compression
+│   │   └── Context Window Optimization
+│   │
+│   ├── 24. Multi-Stage Retrieval
+│   │   ├── BM25
+│   │   ├── Dense Retrieval
+│   │   ├── Hybrid Retrieval
+│   │   ├── Cross-Encoder Reranking
+│   │   └── LLM Reranking
+│   │
+│   ├── 25. Query-Aware Reranking
+│   │   ├── Query Expansion
+│   │   ├── Query Rewriting
+│   │   ├── Query Decomposition
+│   │   └── Query-Specific Ranking
+│   │
+│   └── 26. Metadata-Aware Reranking
+│       ├── Document Type
+│       ├── Date
+│       ├── Department
+│       ├── Author
+│       ├── Category
+│       └── Metadata Score
+│
+│
+├── LEVEL 4 — EXPERT
+│
+│   ├── 27. Learning-to-Rank
+│   │   ├── Pointwise Ranking
+│   │   ├── Pairwise Ranking
+│   │   ├── Listwise Ranking
+│   │   ├── Ranking Loss
+│   │   └── Training Data
+│   │
+│   ├── 28. Ranking Algorithms
+│   │   ├── RankNet
+│   │   ├── LambdaRank
+│   │   ├── LambdaMART
+│   │   └── Gradient Boosted Ranking
+│   │
+│   ├── 29. Score Fusion
+│   │   ├── Weighted Sum
+│   │   ├── Reciprocal Rank Fusion
+│   │   ├── Relative Score Fusion
+│   │   └── Rank Fusion
+│   │
+│   ├── 30. LLM-Based Reranking
+│   │   ├── LLM as Ranker
+│   │   ├── Query + Multiple Documents
+│   │   ├── Relevance Classification
+│   │   ├── Structured Ranking
+│   │   └── LLM-Based Selection
+│   │
+│   ├── 31. Reranking with LLMs
+│   │   ├── Qwen
+│   │   ├── Llama
+│   │   ├── Mistral
+│   │   └── Local LLM Reranking
+│   │
+│   ├── 32. Late Interaction
+│   │   ├── Token-Level Embeddings
+│   │   ├── ColBERT
+│   │   ├── MaxSim
+│   │   └── Efficient Ranking
+│   │
+│   ├── 33. Long-Document Reranking
+│   │   ├── Long Context
+│   │   ├── Document Splitting
+│   │   ├── Passage Ranking
+│   │   ├── Aggregation
+│   │   └── Document-Level Ranking
+│   │
+│   └── 34. Hierarchical Reranking
+│       ├── Document Level
+│       ├── Section Level
+│       ├── Chunk Level
+│       ├── Sentence Level
+│       └── Final Context Selection
+│
+│
+├── LEVEL 5 — PRODUCTION
+│
+│   ├── 35. Reranking Optimization
+│   │   ├── Latency Reduction
+│   │   ├── Batch Inference
+│   │   ├── Parallel Processing
+│   │   ├── GPU Inference
+│   │   └── CPU Optimization
+│   │
+│   ├── 36. Model Optimization
+│   │   ├── Quantization
+│   │   ├── ONNX
+│   │   ├── INT8
+│   │   ├── FP16
+│   │   └── Model Distillation
+│   │
+│   ├── 37. Reranking Cache
+│   │   ├── Query Cache
+│   │   ├── Result Cache
+│   │   ├── Embedding Cache
+│   │   └── Model Cache
+│   │
+│   ├── 38. Cost Optimization
+│   │   ├── Candidate Reduction
+│   │   ├── Top-50 → Top-10
+│   │   ├── Selective Reranking
+│   │   ├── Local Models
+│   │   └── API Models
+│   │
+│   ├── 39. Evaluation
+│   │   ├── Precision@K
+│   │   ├── Recall@K
+│   │   ├── MRR
+│   │   ├── NDCG
+│   │   ├── Hit Rate
+│   │   └── Answer Relevance
+│   │
+│   ├── 40. Reranking Monitoring
+│   │   ├── Latency
+│   │   ├── Throughput
+│   │   ├── Ranking Quality
+│   │   ├── Failure Rate
+│   │   └── Cost Per Query
+│   │
+│   └── 41. Production Architecture
+│       ├── API Layer
+│       ├── Retrieval Layer
+│       ├── Reranking Layer
+│       ├── Context Layer
+│       ├── LLM Layer
+│       ├── Cache
+│       └── Monitoring
+│
+│
+└── LEVEL 6 — HANDS-ON PROJECTS
+    │
+    ├── 42. Basic Document Reranker
+    │   ├── TF-IDF
+    │   ├── Similarity
+    │   └── Top-K
+    │
+    ├── 43. FAISS + Cross Encoder
+    │   ├── FAISS Retrieval
+    │   ├── Top-20
+    │   ├── Cross Encoder
+    │   └── Top-5
+    │
+    ├── 44. ChromaDB + BGE Reranker
+    │   ├── ChromaDB
+    │   ├── Embeddings
+    │   ├── Top-50
+    │   └── BGE Reranking
+    │
+    ├── 45. BM25 + Vector + Reranker
+    │   ├── Keyword Search
+    │   ├── Semantic Search
+    │   ├── Hybrid Search
+    │   └── Cross Encoder
+    │
+    ├── 46. Reranking RAG
+    │   ├── Documents
+    │   ├── Chunking
+    │   ├── Embedding
+    │   ├── Vector DB
+    │   ├── Top-50 Retrieval
+    │   ├── Reranking
+    │   └── LLM
+    │
+    ├── 47. Enterprise Search
+    │   ├── Metadata Filtering
+    │   ├── BM25
+    │   ├── Vector Search
+    │   ├── Reranking
+    │   └── Result Ranking
+    │
+    ├── 48. Resume Matching
+    │   ├── Resume Chunking
+    │   ├── Job Description
+    │   ├── Embedding
+    │   ├── Candidate Retrieval
+    │   ├── Reranking
+    │   └── Match Score
+    │
+    ├── 49. HR Policy RAG
+    │   ├── PDF
+    │   ├── OCR
+    │   ├── Recursive Chunking
+    │   ├── ChromaDB
+    │   ├── Top-K Retrieval
+    │   ├── Reranking
+    │   └── Qwen/Llama
+    │
+    └── 50. Production RAG System
+        ├── Hybrid Retrieval
+        ├── Vector DB
+        ├── Cross Encoder
+        ├── Reranking
+        ├── Context Compression
+        ├── LLM
+        ├── Evaluation
+        ├── Caching
+        └── Monitoring
