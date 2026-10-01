@@ -1,0 +1,988 @@
+Reranking (Retrieval Optimization) :
+
+		- Reranking is the second-stage retrieval process in a RAG system where initially retrieved documents/chunks are evaluated again using a more powerful ranking model to identify the most relevant results.
+		
+		
+		User Query
+		    │
+		      ▼
+		Query Embedding
+		    │
+		      ▼
+		Vector Database
+		    │
+		     ▼
+		Top-K Retrieval
+		    │
+		    │  Example: Top 20 chunks
+		      ▼
+		Reranker
+		    │
+		    │  Re-score relevance
+		     ▼
+		Top-N Results
+		    │
+		    │  Example: Top 5 chunks
+		     ▼
+		  LLM
+		   │
+		    ▼
+		Final Answer
+		
+		
+What is Reranking? : 
+
+	Definition :
+
+		- Reranking is the process of taking an initial set of retrieved documents/chunks and reordering them according to their relevance to the user's query.
+		
+		- The first retrieval stage is normally optimized for speed and recall.
+
+		- The reranking stage is optimized for relevance and precision.
+		
+		
+Why Reranking is Needed :
+
+	Vector search is very useful, but the initial similarity score does not always perfectly represent relevance.
+
+	For example:
+
+		Query:
+		"What is the employee's maternity leave duration?"
+
+		Vector search might return:
+
+		1. Employee Leave Policy
+		2. Annual Leave
+		3. Employee Benefits
+		4. Maternity Leave
+		5. Insurance Benefits
+
+		The actual answer may be in:
+
+			4. Maternity Leave
+			
+	- because the embedding similarity between the query and another general "leave" document may be higher.
+
+	- Reranking provides a second opportunity to evaluate the candidates.
+	
+	
+	
+Retrieval vs Reranking : 
+
+
+	Retrieval and Reranking are two different stages in a search/RAG pipeline.
+
+		| Feature                     | Retrieval                              | Reranking                              |
+		|-----------------------------|----------------------------------------|----------------------------------------|
+		| Purpose                     | Find candidate documents               | Order candidate documents              |
+		| Stage                       | First stage                            | Second stage                           |
+		| Main Goal                  | Recall                                 | Precision                              |
+		| Input                      | Query + Database                       | Query + Retrieved Candidates           |
+		| Number of Documents        | Large                                  | Smaller                                |
+		| Speed                      | Faster                                 | Slower                                 |
+		| Model                       | Embedding / BM25                       | Cross-Encoder / Reranker / LLM         |
+		| Database Search             | Yes                                    | Usually No                             |
+		| Query-Document Interaction  | Limited                                | Stronger                               |
+		| Processing                  | Broad Search                           | Deep Relevance Analysis                |
+		| Output                      | Candidate Documents                    | Ordered/Reranked Documents              |
+		| Typical Top-K               | Top-50 / Top-100 / Top-200             | Top-5 / Top-10 / Top-20                |
+		| Focus                       | Find relevant documents                | Put the most relevant first             |
+		| Computational Cost          | Lower                                  | Higher                                  |
+		| Accuracy                    | Good initial recall                    | Higher final precision                 |
+		| Example                     | FAISS / ChromaDB / BM25                | Cross-Encoder / Cohere Reranker / LLM  |
+
+
+	## Simple Flow :
+
+			User Query
+			    ↓
+			Retrieval
+			    ↓
+			FAISS / ChromaDB / BM25
+			    ↓
+			Top-100 Candidate Documents
+			    ↓
+			Reranking
+			    ↓
+			Cross-Encoder / Reranker / LLM
+			    ↓
+			Top-5 Most Relevant Documents
+			    ↓
+			LLM / RAG
+			    ↓
+			Final Answer
+			
+			
+First Stage Retrieval & Second Stage Ranking :
+
+	User Query
+	    │
+	     ▼
+	Embedding Model
+	    │
+	    │  Convert query → vector
+	     ▼
+	Vector Database
+	    │
+	    │  First Stage: Retrieval
+	    │
+	    └── Retrieve Top-50 Candidates
+		  │
+		   ▼
+	       Reranker
+		  │
+		  │  Second Stage: Reranking
+		  │
+		  └── Select Top-5
+		        │
+		            ▼
+		     Context
+		        │
+		            ▼
+		       LLM
+		        │
+		            ▼
+		   Final Answer
+		   
+		   
+Complete Reranking Fundamentals :		   
+
+                    USER QUERY
+                        │
+                        	▼
+              ┌─────────────────┐
+              │ First Retrieval │
+              │                 │
+              │ Vector / BM25   │
+              │ Hybrid Search   │
+              └────────┬────────┘
+                       │
+                      	          ▼
+                  Top-K Results
+                    Example: 50
+                       │
+                                  ▼
+              ┌─────────────────┐
+              │    Reranker     │
+              │                 │
+              │ Query + Chunk   │
+              │      ↓          │
+              │ Relevance Score │
+              └────────┬────────┘
+                       │
+                                  ▼
+                  Top-N Results
+                    Example: 5
+                       │
+                                  ▼
+              Context Construction
+                       │
+                                  ▼
+                      LLM
+                       │
+                                  ▼
+                 Final Answer
+                 
+                 
+The 7 concepts in one line :
+
+	1. What is Reranking?
+	   → Reorder retrieved results by relevance.
+
+	2. Why is it needed?
+	   → Initial retrieval is not always perfectly relevant.
+
+	3. Retrieval vs Reranking
+	   → Retrieval finds candidates; reranking orders them.
+
+	4. First Stage Retrieval
+	   → Quickly retrieves a larger candidate set.
+
+	5. Second Stage Ranking
+	   → Deeply evaluates and scores those candidates.
+
+	6. Precision Improvement
+	   → Moves the most relevant documents to the top.
+
+	7. Context Quality Improvement
+	   → Sends cleaner, more relevant context to the LLM.
+	   
+	   
+1. Top-K Retrieval :
+
+	What is Top-K?
+
+		Top-K retrieval means selecting the K highest-scoring documents from the retrieval results.
+
+		Here, K represents the number of documents/chunks you want to retrieve.
+
+		For example:
+
+			K = 5
+			
+2. Relevance Score :
+
+	What is a Relevance Score?
+
+		A relevance score represents how strongly a document is considered relevant to the query.
+
+		For example:
+
+		Query:
+		"What is the refund policy?"
+
+		Possible scores:
+
+		Document A → 0.96
+		Document B → 0.83
+		Document C → 0.61
+		Document D → 0.22
+
+		Higher score generally means:
+
+		Higher relevance
+
+		But an important point is:
+
+			The meaning and scale of a relevance score depend on the model and retrieval system.
+
+		A score of 0.90 from one system cannot automatically be compared with 0.90 from another system.
+
+
+3. Similarity Score :
+
+	What is Similarity Score?
+
+		A similarity score measures how similar two representations are, commonly:
+
+		Query
+		   ↕
+		Document
+
+		In vector retrieval, the query and document are converted into embeddings.
+		
+		
+	Cosine Similarity :
+	
+		Cosine Similarity =
+		A · B
+		-------
+		|A| |B|
+
+		Typically:
+
+			-1 → opposite direction
+			 0 → unrelated/orthogonal
+			+1 → same direction
+			
+	Dot Product :
+	
+		Score = A · B
+		
+	Euclidean Distance :
+
+		Unlike similarity, distance generally means:
+
+		Smaller distance
+		      ↓
+		More similar
+		
+
+4. Ranking Function :
+
+	What is a Ranking Function?
+
+		A ranking function determines the order of documents based on their scores or features.
+
+		Simple ranking:
+
+			Score
+			  ↓
+			Sort descending
+			  ↓
+			Highest score first
+
+			Example:
+
+			A → 0.92
+			B → 0.87
+			C → 0.74
+			D → 0.51
+			
+			
+		More Advanced Ranking :
+
+			A ranking function can combine multiple signals.
+
+			For example:
+
+				Final Score =
+				
+					0.60 × Vector Score
+					+
+					0.25 × BM25 Score
+					+
+					0.15 × Metadata Score
+
+			Example:
+
+				Vector Score = 0.90
+				BM25 Score   = 0.80
+				Metadata     = 1.00
+
+				Then:
+
+				Final Score =
+				(0.60 × 0.90)
+				+
+				(0.25 × 0.80)
+				+
+				(0.15 × 1.00)
+
+				= 0.54 + 0.20 + 0.15
+
+				= 0.89
+
+				This allows a system to combine multiple retrieval signals.
+				
+				
+				In a reranking system :
+
+					A cross-encoder might calculate:
+
+						Query + Document
+						       ↓
+						Reranker Model
+						       ↓
+						Relevance Score
+						       ↓
+						   Sort
+						       ↓
+						   Top-N
+						   
+						   
+						   
+5. Score Normalization :
+
+		Different scoring systems can produce scores on different scales.
+
+		For example:
+
+		Vector Search:
+		0.0 → 1.0
+
+		BM25:
+			0 → 25
+
+		Another model:
+			-5 → +5
+
+		It is difficult to combine these directly.
+
+		Therefore, we may need score normalization.
+		
+		
+		Min-Max Normalization :
+
+				One common technique is:
+
+				Normalized Score =
+							Score - Minimum Score
+							---------------------
+							Maximum Score - Minimum Score
+
+				Example:
+
+					Scores:
+
+					10
+					20
+					30
+					40
+					50
+
+					Minimum:
+
+						10
+
+					Maximum:
+
+						50
+
+					For score 30:
+
+						(30 - 10) / (50 - 10)
+
+						= 20 / 40
+
+						= 0.5
+						
+					So:
+
+						Original     Normalized
+
+						10              0.00
+						20              0.25
+						30              0.50
+						40              0.75
+						50              1.00
+						
+						
+		Why normalization matters :
+
+				Suppose you want hybrid retrieval:
+
+					Dense Search
+					      +
+					BM25
+					      ↓
+					Combined Score
+
+				But:
+
+					Dense = 0.85
+					BM25  = 18.5
+
+				Adding them directly:
+
+					0.85 + 18.5
+
+				would allow the BM25 scale to dominate.
+
+					After normalization:
+
+						Dense → 0.85
+						BM25  → 0.78
+
+				Now you can combine them more meaningfully.
+
+					For example:
+
+					Final Score =
+						0.7 × Dense Score
+						+
+						0.3 × BM25 Score
+						
+						
+						
+						
+6. Threshold Filtering :
+
+
+		What is Threshold Filtering?
+
+			Threshold filtering removes documents whose score is below a predefined minimum.
+
+			Example:
+
+				Threshold = 0.70
+
+			Retrieved:
+
+				Document A → 0.94
+				Document B → 0.88
+				Document C → 0.76
+				Document D → 0.61
+				Document E → 0.42
+
+			Apply:
+
+				score >= 0.70
+
+			Result:
+
+				Document A → 0.94
+				Document B → 0.88
+				Document C → 0.76
+
+			Remove:
+
+				Document D → 0.61
+				Document E → 0.42
+				
+				
+				
+		Top-K vs Threshold :
+
+			These are different concepts.
+
+			Top-K
+
+				Always attempts to return up to K results.
+
+			Top-K = 5
+
+				Even if the scores are:
+
+				0.91
+				0.82
+				0.61
+				0.42
+				0.21
+
+			you may still receive five results.
+
+			Threshold
+
+				Returns only results above a minimum score.
+
+				Threshold = 0.70
+
+				Result:
+
+				0.91 ✓
+				0.82 ✓
+				0.61 ✗
+				0.42 ✗
+				0.21 ✗
+				
+				
+Concept              Simple Meaning
+---------------------------------------------------------------
+Top-K Retrieval      Retrieve the K highest-ranked candidates
+Relevance Score      How relevant a document is to the query
+Similarity Score     How similar the query and document representations are
+Ranking Function     Determines the order of candidates
+Score Normalization  Converts scores to a comparable scale
+Threshold Filtering  Removes results below a minimum score
+
+
+3. Reranking Architectures :
+
+		Reranking architectures describe how a query and document are compared and how their relevance is calculated.
+
+		The three important architectures are:
+
+		1. Bi-Encoder
+		2. Cross-Encoder
+		3. Hybrid Ranking
+
+		A useful way to understand them is:
+
+				    Reranking Architectures
+				            │
+			  ┌─────────────────┼─────────────────┐
+			  │                 │                 │
+			  ▼              	      ▼                        ▼
+		     Bi-Encoder       Cross-Encoder      Hybrid Ranking
+			  │                 │                 │
+		     Fast retrieval      High accuracy    Multiple signals
+			  │                 │                 │
+		     Separate vectors   Query + Document   Keyword + Semantic
+		     
+		 The key distinction to remember :
+
+				Bi-Encoder: encode query and documents separately → compare vectors → fast retrieval.
+
+				Cross-Encoder: process query and document together → model directly evaluates their interaction → slower but useful for high-quality reranking.
+
+				Hybrid Ranking: combine keyword and semantic signals → normalize/weight them → produce a combined ranking.
+						     
+		     
+1. Bi-Encoder :
+
+		A Bi-Encoder uses two encoding operations:
+
+		Query
+		  ↓
+		Query Encoder
+		  ↓
+		Query Vector
+
+		Document
+		  ↓
+		Document Encoder
+		  ↓
+		Document Vector
+
+		Query Vector + Document Vector
+			      ↓
+		       Vector Similarity
+			      ↓
+			  Score
+
+		The query and document are encoded independently.
+		
+		Bi-Encoder is primarily your first-stage retriever.
+		
+		
+		1.1 What is a Bi-Encoder?
+
+			A Bi-Encoder independently converts the query and documents into vectors.
+
+					 Query
+					   │
+					   ▼
+				    Query Encoder
+					   │
+					   ▼
+				     Query Vector
+					   │
+					   │
+					   ▼
+				      Similarity
+					   ▲
+					   │
+					   │
+				   Document Vector
+					   ▲
+					   │
+				  Document Encoder
+					    ▲
+					   │
+				       Document
+
+			The important word is independently.
+
+			Query    → Encoder → Query Vector
+
+			Document → Encoder → Document Vector
+			
+			Then:
+
+				Query Vector
+				      +
+				Document Vector
+				      ↓
+				Cosine Similarity
+				      ↓
+				Similarity Score
+
+
+2. Cross-Encoder :
+
+		Now we move to the second technique.
+
+		2.1 What is Cross-Encoder?
+
+			A Cross-Encoder receives:
+
+				Query + Document
+
+				together.
+
+				Query
+				  +
+				Document
+				  ↓
+				Cross-Encoder
+				  ↓
+				Relevance Score
+
+				This is fundamentally different from a Bi-Encoder.
+
+
+		2.2 Bi-Encoder vs Cross-Encoder :
+		
+			Bi-Encoder :
+			
+				Query ──────→ Encoder ──────→ Vector
+								  │
+								  ▼
+							      Similarity
+								  ▲
+								  │
+				Document ───→ Encoder ──────→ Vector
+				
+			Cross-Encoder :
+			
+			Query ──────┐
+				    │
+				      ▼
+			       Cross-Encoder
+				      ▲
+				    │
+			Document ───┘
+				    │
+				    ▼
+			      Relevance Score
+			      
+			      
+		2.3 Query + Document Pair :
+
+			For our query:
+
+			How many weeks of maternity leave are provided?
+
+			and document:
+
+			Employees are eligible for 26 weeks of maternity leave.
+
+			the pair is:
+
+			(
+			    "How many weeks of maternity leave are provided?",
+			    "Employees are eligible for 26 weeks of maternity leave."
+			)
+
+			The Cross-Encoder evaluates that pair.
+			
+			
+3. Hybrid Ranking :
+
+		Now we combine:
+
+			Keyword Search
+			       +
+			Semantic Search
+			       ↓
+			Combined Ranking
+
+			This is useful because keyword and semantic retrieval have different strengths.
+			
+			
+		3.1 Keyword Search :
+
+			Keyword search focuses on exact terms.
+
+			For example:
+
+			Query:
+
+			"maternity leave 26 weeks"
+
+			A keyword system can strongly match:
+
+			"Employees are eligible for 26 weeks of maternity leave."
+
+			because it contains:
+
+			maternity
+			leave
+			26
+			weeks
+
+			A common algorithm is:
+
+				BM25
+				
+		3.2 Semantic Search :
+
+			Semantic search doesn't require exact wording.
+
+			Query:
+
+				"How long can a mother take leave?"
+
+			Document:
+
+				"Employees are eligible for 26 weeks of maternity leave."
+
+			Even though the wording is different, embeddings can identify semantic similarity.
+
+			Query
+			 ↓
+			Embedding
+			 ↓
+			Vector DB
+			 ↓
+			Semantic Score
+			
+			
+		3.3 Hybrid Ranking Architecture :
+
+
+				         QUERY
+				           │
+			      ┌────────────┴────────────┐
+			      │                         │
+			         ▼                                    ▼
+			  BM25 Search             Vector Search
+			      │                         │
+			         ▼                                    ▼
+			Keyword Score             Semantic Score
+			      │                         │
+			      └────────────┬────────────┘
+				                ▼
+				    Score Normalization
+				           │
+				                ▼
+				    Combined Score
+				           │
+				                ▼
+				        Ranking
+				           │
+				                ▼
+				         Top-K
+				           │
+				                ▼
+				    Cross-Encoder
+				           │
+				                ▼
+				         Top-N
+				           │
+				                ▼
+				          LLM
+				          
+				          
+		3.4 Hybrid Ranking Formula :
+
+			For example:
+
+			Combined Score
+			=
+			0.4 × Keyword Score
+			+
+			0.6 × Semantic Score
+
+			The weights are configurable.
+
+			KEYWORD_WEIGHT = 0.4
+			SEMANTIC_WEIGHT = 0.6
+			
+			
+			
+We will follow this order:
+
+	1. First-Stage Retrieval
+	   ├── ChromaDB
+	   ├── SentenceTransformer
+	   ├── Query Embedding
+	   ├── Similarity Search
+	   └── Top-K
+
+	2. Second-Stage Retrieval
+	   ├── First-stage candidates
+	   ├── Cross-Encoder
+	   ├── Query + Document pairs
+	   ├── Relevance Score
+	   ├── Reranking
+	   └── Top-N
+
+	3. Complete Two-Stage RAG
+	   ├── ChromaDB
+	   ├── First-stage retrieval
+	   ├── Cross-Encoder reranking
+	   ├── Context creation
+	   └── LLM
+	   
+	   
+	   
+	   
+Reranking Models :
+
+		Reranking Models
+		│
+		├── 1. BGE Reranker
+		│   ├── bge-reranker-base
+		│   └── bge-reranker-large
+		│
+		├── 2. Cohere Rerank
+		│   ├── rerank-v3
+		│   └── Enterprise Search
+		│
+		├── 3. Jina Reranker
+		│   └── jina-reranker-v2
+		│
+		└── 4. Cross-Encoder Models
+		    ├── MS MARCO Models
+		    └── Sentence Transformer Rerankers
+		    
+		    
+		    
+		All of these fit into the second stage:
+
+				Document
+				   ↓
+				RecursiveCharacterTextSplitter
+				   ↓
+				Embedding
+				   ↓
+				ChromaDB
+				   ↓
+				FIRST-STAGE RETRIEVAL
+				   ↓
+				Top-K = 20
+				   ↓
+				┌──────────────────────┐
+				│ RERANKING MODEL      │
+				│                      │
+				│ BGE / Cohere / Jina  │
+				│ Cross-Encoder        │
+				└──────────┬───────────┘
+					   ↓
+				      SECOND STAGE
+					   ↓
+					Top-N = 5
+					   ↓
+					Context
+					   ↓
+				       Qwen / Ollama
+					   ↓
+					 Answer
+					 
+All Models in One View :				 
+					 
+                         DOCUMENT
+                            │
+                            	      ▼
+             RecursiveCharacterTextSplitter
+                            │
+                                          ▼
+                         CHUNKS
+                            │
+                                         ▼
+                    SentenceTransformer
+                            │
+                                         ▼
+                         ChromaDB
+                            │
+                                         ▼
+                     FIRST STAGE
+                            │
+                         Top-K
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+               ▼                         ▼                        ▼
+       BGE Base          Cohere             Jina
+          │              Rerank            Reranker
+          │                 │                 │
+          ├─────────────────┼─────────────────┤
+          │
+              ▼
+     Cross-Encoder
+          │
+              ▼
+       SECOND STAGE
+          │
+         Top-N
+          │
+              ▼
+       CONTEXT
+          │
+               ▼
+      Qwen / Ollama
+          │
+               ▼
+        ANSWER
+        
+        
+production-style single-file RAG implementation with your exact architecture:
+
+			Document
+			   ↓
+			RecursiveCharacterTextSplitter
+			   ↓
+			Embedding
+			   ↓
+			ChromaDB
+			   ↓
+			FIRST-STAGE RETRIEVAL
+			   ↓
+			Top-K
+			   ↓
+			Cross-Encoder
+			   ↓
+			SECOND-STAGE RERANKING
+			   ↓
+			Top-N
+			   ↓
+			Context
+			   ↓
+			SYSTEM_PROMPT + SCHEMA + USER_PROMPT
+			   ↓
+			Qwen / Ollama
+			   ↓
+			Structured JSON Answer
