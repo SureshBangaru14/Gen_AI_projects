@@ -1,0 +1,2719 @@
+# 1. RAG FUNDAMENTALS
+
+		RAG = Retrieval-Augmented Generation
+
+		RAG combines:
+		
+			1. Information Retrieval
+			2. Large Language Model (LLM)
+
+		Basic idea:
+
+			User Question
+			      ↓
+			Retrieve Relevant Information
+			      ↓
+			Provide Retrieved Information to LLM
+			      ↓
+			Generate Answer
+
+
+==================================================
+1. WHAT IS RAG?
+==================================================
+
+		RAG stands for Retrieval-Augmented Generation.
+
+		RAG is an architecture where an LLM retrieves relevant information from an external knowledge source and uses that information as context to generate an answer.
+
+		Simple flow:
+
+			User Question
+			      ↓
+			Retriever
+			      ↓
+			Knowledge Base
+			      ↓
+			Relevant Information
+			      ↓
+			   LLM
+			      ↓
+			Final Answer
+
+
+		Example:
+
+			Suppose a company has:
+
+			    HR_Policy.pdf
+			    Leave_Policy.pdf
+			    Salary_Policy.pdf
+
+		User asks:
+
+		    "How many sick leaves can an employee take?"
+
+		The LLM may not know the company's internal leave policy.
+
+		RAG retrieves the relevant section from Leave_Policy.pdf and provides it to the LLM.
+
+		Flow:
+
+			Question
+			   ↓
+			Search Knowledge Base
+			   ↓
+			Leave_Policy.pdf
+			   ↓
+			Relevant Chunk
+			   ↓
+			 LLM
+			   ↓
+			Answer
+
+
+		Therefore:
+
+			RAG = Retrieval + Context + Generation
+
+
+==================================================
+2. WHY RAG IS NEEDED
+==================================================
+
+			LLMs are powerful, but they have limitations.
+
+			Without RAG:
+
+				User
+				 ↓
+				LLM
+				 ↓
+				Answer
+
+			With RAG:
+
+				User
+				 ↓
+				Retriever
+				 ↓
+				External Knowledge
+				 ↓
+				Relevant Context
+				 ↓
+				LLM
+				 ↓
+			       Answer
+
+
+			Main reasons for using RAG:
+
+				1. Private / Enterprise Data
+				2. Frequently Changing Information
+				3. Domain-Specific Knowledge
+				4. Reduce Unsupported Answers
+				5. Provide Evidence / Context
+				6. Avoid Retraining the Model for Every Document Update
+
+
+			Example:
+
+				Company has internal documents:
+
+				    Employee Policy
+				    Financial Reports
+				    Technical Manuals
+				    Customer Documents
+				    Insurance Claims
+
+			The base LLM does not automatically have access to these documents.
+
+			RAG allows the application to retrieve the required information and provide it to the LLM.
+
+
+==================================================
+3. LLM KNOWLEDGE LIMITATION
+==================================================
+
+		An LLM learns patterns and information during training.
+
+		The model does not automatically know:
+
+		    - Your private company documents
+		    - Your internal database
+		    - Newly uploaded documents
+		    - Latest internal policies
+		    - Customer-specific information
+		    - Private financial records
+
+		Example:
+
+			Your company uploads:
+
+			    Employee_Policy_2026.pdf
+
+			User asks:
+
+			    "What is our current work-from-home policy?"
+
+			The base LLM does not automatically have access to this PDF.
+
+			RAG solves this problem by retrieving the relevant information and putting it into the LLM context.
+
+
+		Important:
+
+			RAG does NOT mean that the LLM itself has learned the document permanently.
+
+			Instead:
+
+				Document
+				   ↓
+				Stored in Knowledge Base
+				   ↓
+				Retrieved at query time
+				   ↓
+				Provided to LLM as Context
+				   ↓
+				LLM generates Answer
+
+
+==================================================
+RAG VS FINE-TUNING
+==================================================
+
+		RAG:
+
+			Documents
+			    ↓
+			Knowledge Base
+			    ↓
+			Retrieve Information
+			    ↓
+			Context
+			    ↓
+			LLM
+			    ↓
+			Answer
+
+
+		Fine-Tuning:
+
+			Training Data
+			    ↓
+			Fine-Tuning
+			    ↓
+			Updated Model Weights
+			    ↓
+			Model
+
+
+		Important interview point:
+
+			RAG changes the information supplied to the model at inference time.
+
+			Fine-tuning changes the model's learned parameters/weights.
+
+
+==================================================
+4. EXTERNAL KNOWLEDGE RETRIEVAL
+==================================================
+
+		Retrieval is the "R" in RAG.
+
+		The retrieval system searches external knowledge sources and finds information relevant to the user's question.
+
+
+		Possible knowledge sources:
+
+		    PDF
+		    DOCX
+		    TXT
+		    Excel
+		    CSV
+		    Web Pages
+		    Databases
+		    APIs
+		    Vector Databases
+		    Knowledge Graphs
+		    Internal Company Systems
+
+
+		Example:
+
+			Documents:
+
+			    HR_Policy.pdf
+			    Finance_Policy.pdf
+			    Security_Policy.pdf
+
+			Question:
+
+			    "What is the password policy?"
+
+			Retriever searches the knowledge base.
+
+			It should find:
+
+			    Security_Policy.pdf
+				  ↓
+			    Password Policy Section
+				  ↓
+		   	   Relevant Chunks
+
+
+		   The system does NOT need to send the entire document collection to the LLM.
+
+		   It retrieves only the most relevant information.
+
+
+==================================================
+5. RAG ARCHITECTURE
+==================================================
+
+		Basic RAG Architecture:
+
+
+				 DOCUMENTS
+				     |
+			  +----------+----------+
+			  |          |          |
+			 PDF        DOCX       Excel
+			  |          |          |
+			  +----------+----------+
+				     |
+				     v
+			     Document Loader
+				     |
+				     v
+			     Text Extraction
+				     |
+				     v
+				    OCR
+			      (if required)
+				     |
+				     v
+				Text Cleaning
+				     |
+				     v
+				  Chunking
+				     |
+				     v
+				Embeddings
+				     |
+				     v
+			     +---------------+
+			     |   Vector DB   |
+			     |               |
+			     |   Vectors     |
+			     |   Text        |
+			     |   Metadata    |
+			     +---------------+
+				     |
+				     |
+			       USER QUESTION
+				     |
+				     v
+			      Query Embedding
+				     |
+				     v
+			     Similarity Search
+				     |
+				     v
+			      Relevant Chunks
+				     |
+				     v
+			      Context Builder
+				     |
+				     v
+			     +---------------+
+			     |      LLM      |
+			     |               |
+			     | Qwen / GPT /  |
+			     | Llama / etc.  |
+			     +---------------+
+				     |
+				     v
+				  ANSWER
+
+
+==================================================
+6. RAG PIPELINE
+==================================================
+
+		RAG has two major pipelines:
+
+			1. Indexing Pipeline
+			2. Query Pipeline
+
+
+--------------------------------------------------
+A. INDEXING PIPELINE
+--------------------------------------------------
+
+		The indexing pipeline runs before the user asks questions.
+
+		Flow:
+
+			Documents
+			    ↓
+			Document Loading
+			    ↓
+			Text Extraction
+			    ↓
+			  OCR
+			    ↓
+			Text Cleaning
+			    ↓
+			Chunking
+			    ↓
+			Embedding Generation
+			    ↓
+			Vector Database
+
+
+		Example:
+
+			100-page PDF
+			    ↓
+			Extract Text
+			    ↓
+			100 pages of text
+			    ↓
+			Chunking
+			    ↓
+			1000 chunks
+			    ↓
+			Embedding Model
+			    ↓
+			1000 vectors
+			    ↓
+			Vector Database
+
+
+		Example embedding:
+
+			Chunk:
+
+			    "Employees are eligible for 12 sick leaves per year."
+
+			Embedding:
+
+			    [0.12, -0.43, 0.78, 0.21, ...]
+
+
+			Stored in Vector DB with metadata:
+
+			{
+			    "text": "Employees are eligible for 12 sick leaves per year.",
+			    "file_name": "Leave_Policy.pdf",
+			    "page_number": 5,
+			    "section": "Sick Leave"
+			}
+
+
+--------------------------------------------------
+B. QUERY PIPELINE
+--------------------------------------------------
+
+		This happens when the user asks a question.
+
+		Flow:
+
+			User Question
+			      ↓
+			Query Processing
+			      ↓
+			Query Embedding
+			      ↓
+			Vector Search
+			      ↓
+			Top-K Results
+			      ↓
+			Optional Reranking
+			      ↓
+			Relevant Context
+			      ↓
+			Prompt Construction
+			      ↓
+			   LLM
+			      ↓
+			Final Answer
+
+
+		Example:
+
+			User asks:
+
+			    "How many sick leaves can I take?"
+
+
+			Step 1:
+
+				Convert question into an embedding.
+
+				Question
+				    ↓
+				Embedding Model
+				    ↓
+				Query Vector
+
+
+			Step 2:
+
+				Search Vector Database.
+
+				Query Vector
+				    ↓
+				Similarity Search
+				    ↓
+				Top-K Chunks
+
+
+			Step 3:
+
+				Optional reranking.
+
+				Top 50 results
+				      ↓
+				Reranker
+				      ↓
+				Top 5 relevant results
+
+
+			Step 4:
+
+				Build LLM context.
+
+				Context:
+
+				    "Employees are eligible for 12 sick leaves per year."
+
+
+				Question:
+
+				    "How many sick leaves can I take?"
+
+
+			Step 5:
+
+				Send context + question to LLM.
+
+				LLM
+				 ↓
+				Final Answer
+
+
+==================================================
+COMPLETE RAG FLOW
+==================================================
+
+				DOCUMENTS
+				    |
+				    v
+			     Text Extraction
+				    |
+				    v
+				   OCR
+				    |
+				    v
+				Chunking
+				    |
+				    v
+			       Embeddings
+				    |
+				    v
+			      Vector Database
+				    |
+				    |
+				    |
+			       USER QUERY
+				    |
+				    v
+			     Query Embedding
+				    |
+				    v
+			    Retrieval/Search
+				    |
+				    v
+				 Top-K
+				    |
+				    v
+			       Reranking
+				    |
+				    v
+			     Top Relevant
+				 Chunks
+				    |
+				    v
+			     Context Builder
+				    |
+				    v
+				  Prompt
+				    |
+				    v
+				   LLM
+				    |
+				    v
+			      Final Answer
+
+
+==================================================
+IMPORTANT RAG COMPONENTS
+==================================================
+
+		1. Document Loader
+		   - Loads PDF, DOCX, TXT, Excel, etc.
+
+		2. OCR
+		   - Extracts text from scanned documents/images.
+
+		3. Text Cleaning
+		   - Removes unnecessary noise.
+
+		4. Chunking
+		   - Splits large documents into smaller meaningful pieces.
+
+		5. Embedding Model
+		   - Converts text into numerical vectors.
+
+		6. Vector Database
+		   - Stores and searches embeddings.
+
+		   Examples:
+		       ChromaDB
+		       FAISS
+		       Pinecone
+		       Qdrant
+		       Weaviate
+		       Milvus
+
+		7. Retriever
+		   - Finds relevant chunks.
+
+		8. Metadata Filter
+		   - Filters documents based on metadata.
+
+		9. Reranker
+		   - Reorders retrieved results based on relevance.
+
+		10. Context Builder
+		    - Builds the information supplied to the LLM.
+
+		11. LLM
+		    - Generates the final answer.
+
+		12. Evaluation
+		    - Measures retrieval and generation quality.
+
+
+==================================================
+RAG RETRIEVAL METHODS
+==================================================
+
+			Dense Retrieval
+			    ↓
+			Uses embeddings and semantic similarity.
+
+
+			Sparse Retrieval
+			    ↓
+			Uses keyword-based retrieval.
+
+			Example:
+			    BM25
+
+
+			Hybrid Search
+			    ↓
+			Combines:
+
+			    Dense Retrieval
+				  +
+			    Sparse Retrieval
+
+
+			Example:
+
+			User Query
+			     |
+			     +----------> Dense Search
+			     |
+			     +----------> BM25
+			     |
+			     v
+			   Combine Results
+			     |
+			     v
+			   Reranking
+			     |
+			     v
+			 Final Context
+
+
+==================================================
+RAG WITH RERANKING
+==================================================
+
+		A production RAG system may retrieve many documents first and then rerank them.
+
+		Example:
+
+			User Query
+			    ↓
+			Vector DB
+			    ↓
+			Retrieve 50 chunks
+			    ↓
+			Reranker
+			    ↓
+			Select Top 5
+			    ↓
+			LLM
+			    ↓
+			Answer
+
+
+		Why?
+
+			Vector search may find semantically similar documents, but some results may not be highly relevant.
+
+			Reranking improves the ordering of retrieved results.
+
+
+==================================================
+BASIC RAG VS ADVANCED RAG
+==================================================
+
+		BASIC RAG:
+
+			Query
+			  ↓
+			Embedding
+			  ↓
+			Vector DB
+			  ↓
+			Top 5 Chunks
+			  ↓
+			LLM
+			  ↓
+			Answer
+
+
+		ADVANCED RAG:
+
+			Query
+			  ↓
+			Query Understanding
+			  ↓
+			Query Rewriting
+			  ↓
+			Metadata Filtering
+			  ↓
+			Hybrid Retrieval
+			  ↓
+			Dense Search + BM25
+			  ↓
+			Top 50
+			  ↓
+			Reranking
+			  ↓
+			Top 5
+			  ↓
+			Context Compression
+			  ↓
+			Prompt Construction
+			  ↓
+			LLM
+			  ↓
+			Answer
+
+
+==================================================
+RAG EVALUATION
+==================================================
+
+			A RAG system should be evaluated at multiple levels.
+
+
+			RETRIEVAL METRICS:
+
+			    Recall@K
+			    Precision@K
+			    MRR
+			    NDCG
+			    Hit Rate
+
+
+			GENERATION METRICS:
+
+			    Faithfulness
+			    Answer Relevance
+			    Context Relevance
+			    Correctness
+
+
+			SYSTEM METRICS:
+
+			    Retrieval Latency
+			    Generation Latency
+			    Token Usage
+			    Cost
+
+
+			Important:
+
+			Good RAG requires both:
+
+			    Good Retrieval
+				   +
+			    Good Generation
+
+
+			If retrieval is bad:
+
+			    Bad Context
+			       ↓
+			    Bad Answer
+
+
+			If retrieval is good:
+
+			    Relevant Context
+			       ↓
+			    Better Grounded Answer
+
+
+==================================================
+REAL-WORLD EXAMPLE
+==================================================
+
+		PROJECT:
+
+			Enterprise Financial Document RAG
+
+
+		INPUT DOCUMENTS:
+
+		    BOL
+		    Invoice
+		    Claim
+		    POD
+		    Financial Reports
+
+
+		PIPELINE:
+
+			PDF / Image / Excel
+				↓
+			Document Extraction
+				↓
+			       OCR
+				↓
+			Text Cleaning
+				↓
+			Schema Extraction
+				↓
+			    Chunking
+				↓
+			    Embedding
+				↓
+			ChromaDB / FAISS
+				↓
+			Hybrid Retrieval
+				↓
+			    Reranking
+				↓
+			Relevant Context
+				↓
+			Qwen / GPT / Llama
+				↓
+			Question Answering
+				↓
+			Evidence / Citation
+
+
+			Example question:
+
+				"What is the claim number and why was this claim rejected?"
+
+
+		RAG:
+
+			Question
+			   ↓
+			Retrieve relevant claim chunks
+			   ↓
+			Rerank
+			   ↓
+			Provide evidence to LLM
+			   ↓
+			Generate answer
+
+
+==================================================
+6 FUNDAMENTALS — QUICK REVISION
+==================================================
+
+		1. WHAT IS RAG?
+
+			RAG = Retrieval-Augmented Generation.
+
+			It combines retrieval with LLM generation.
+
+		--------------------------------------------------
+
+		2. WHY RAG IS NEEDED?
+
+			RAG is useful for:
+
+			    Private Data
+			    Enterprise Data
+			    Frequently Changing Data
+			    Domain-Specific Data
+			    Grounded Answers
+			    External Knowledge
+
+		--------------------------------------------------
+
+		3. LLM KNOWLEDGE LIMITATION
+
+			LLMs do not automatically know:
+
+			    Private company documents
+			    Internal databases
+			    Newly uploaded documents
+			    Latest internal policies
+			    Customer-specific data
+
+			RAG provides this information at inference time.
+
+		--------------------------------------------------
+
+		4. EXTERNAL KNOWLEDGE RETRIEVAL
+
+			The retriever searches external knowledge sources and finds relevant information.
+
+		Examples:
+
+		    PDF
+		    DOCX
+		    Excel
+		    Database
+		    API
+		    Vector DB
+		    Knowledge Base
+
+--------------------------------------------------
+
+5. RAG ARCHITECTURE
+
+			Documents
+			    ↓
+			Extraction
+			    ↓
+			Chunking
+			    ↓
+			Embedding
+			    ↓
+			Vector DB
+			    ↓
+			Query
+			    ↓
+			Retrieval
+			    ↓
+			Reranking
+			    ↓
+			Context
+			    ↓
+			LLM
+			    ↓
+			Answer
+
+--------------------------------------------------
+
+6. RAG PIPELINE
+
+		INDEXING:
+
+			Documents
+			    ↓
+			Extraction
+			    ↓
+			OCR
+			    ↓
+			Cleaning
+			    ↓
+			Chunking
+			    ↓
+			Embedding
+			    ↓
+			Vector DB
+
+
+		QUERY:
+
+			Question
+			    ↓
+			Query Embedding
+			    ↓
+			Retrieval
+			    ↓
+			Top-K
+			    ↓
+			Reranking
+			    ↓
+			Context
+			    ↓
+			LLM
+			    ↓
+			Answer
+
+
+==================================================
+INTERVIEW ANSWER
+==================================================
+
+Question:
+
+	"What is RAG?"
+
+
+	Answer:
+
+		"RAG, or Retrieval-Augmented Generation, is an architecture that combines information retrieval with a Large Language Model. During indexing, documents are processed, chunked, converted into embeddings, and stored in a retrieval system such as a vector database. At query time, the user's question is converted into an embedding and used to retrieve relevant chunks. Those chunks are provided as context to the LLM, which generates a grounded response. RAG is particularly useful for private, domain-specific, or frequently changing information because the knowledge base can be updated without retraining the LLM."
+
+
+==================================================
+RAG LEARNING ROADMAP
+==================================================
+
+		1. RAG Fundamentals
+			↓
+		2. Document Loading
+			↓
+		3. Text Extraction
+			↓
+		4. OCR
+			↓
+		5. Chunking
+			↓
+		6. Embeddings
+			↓
+		7. Vector Databases
+			↓
+		8. Similarity Search
+			↓
+		9. Metadata Filtering
+			↓
+		10. Dense Retrieval
+			↓
+		11. Sparse Retrieval
+			↓
+		12. BM25
+			↓
+		13. Hybrid Search
+			↓
+		14. Reranking
+			↓
+		15. Query Transformation
+			↓
+		16. Query Rewriting
+			↓
+		17. Context Engineering
+			↓
+		18. Context Compression
+			↓
+		19. Advanced RAG
+			↓
+		20. RAG Evaluation
+			↓
+		21. Production RAG
+			↓
+		22. Agentic RAG
+
+
+==================================================
+ONE-LINE MEMORY
+==================================================
+
+		RAG:
+
+			"Retrieve the right information,
+			give it to the LLM as context,
+			and generate a grounded answer."
+
+
+		Complete flow:
+
+			DOCUMENTS
+			    ↓
+			EXTRACT
+			    ↓
+			CHUNK
+			    ↓
+			EMBED
+			    ↓
+			STORE
+			    ↓
+			RETRIEVE
+			    ↓
+			RERANK
+			    ↓
+			CONTEXT
+			    ↓
+			 LLM
+			    ↓
+			ANSWER
+			
+			
+			
+# 2. DOCUMENT PROCESSING :
+
+		Document Processing is the stage where raw documents are collected,
+		loaded, extracted, cleaned, split into chunks, and enriched with metadata
+		before embeddings and retrieval.
+
+		Complete flow:
+
+			DATA COLLECTION
+			      ↓
+			DOCUMENT LOADING
+			      ↓
+			PDF PROCESSING
+			      ↓
+			TEXT EXTRACTION
+			      ↓
+			CLEANING
+			      ↓
+			CHUNKING
+			      ↓
+			CHUNK SIZE
+			      ↓
+			CHUNK OVERLAP
+			      ↓
+			METADATA CREATION
+			      ↓
+			EMBEDDING
+			      ↓
+			VECTOR DATABASE
+
+
+==================================================
+1. DATA COLLECTION
+==================================================
+
+		Data collection means gathering the documents that will become the
+		knowledge source for the RAG system.
+
+		Possible data sources:
+
+		    PDF
+		    DOCX
+		    TXT
+		    CSV
+		    Excel
+		    JSON
+		    HTML
+		    Images
+		    Emails
+		    Web Pages
+		    Databases
+		    APIs
+		    Cloud Storage
+		    Internal Enterprise Systems
+
+
+		Example:
+
+		A company wants to build an HR RAG application.
+
+		Documents:
+
+		    HR_Policy.pdf
+		    Leave_Policy.pdf
+		    WFH_Policy.pdf
+		    Employee_Handbook.pdf
+		    Salary_Policy.pdf
+
+
+		Financial RAG example:
+
+		    Invoice_001.pdf
+		    Invoice_002.pdf
+		    BOL_001.pdf
+		    Claim_001.pdf
+		    POD_001.pdf
+
+
+		Important considerations during data collection:
+
+		    1. Document type
+		    2. Document quality
+		    3. Document source
+		    4. Document version
+		    5. Document date
+		    6. Access permissions
+		    7. Duplicate documents
+		    8. Language
+		    9. Sensitive information
+		    10. Update frequency
+
+
+		Data collection pipeline:
+
+			Source
+			   ↓
+			Documents
+			   ↓
+			Validation
+			   ↓
+			Duplicate Check
+			   ↓
+			Version Check
+			   ↓
+			Document Storage
+
+
+		Example:
+
+			Company SharePoint
+				↓
+			Collect Documents
+				↓
+			     Validate
+				↓
+			Remove Duplicates
+				↓
+			Process Documents
+
+
+==================================================
+2. DOCUMENT LOADING
+==================================================
+
+		Document loading means reading the documents from their source and
+		converting them into a format that the processing pipeline can understand.
+
+
+		Example:
+
+			PDF
+			 ↓
+			PDF Loader
+			 ↓
+			Document Object
+
+
+			DOCX
+			 ↓
+			DOCX Loader
+			 ↓
+			Document Object
+
+
+			Excel
+			 ↓
+			Excel Loader
+			 ↓
+			Document Object
+
+
+			TXT
+			 ↓
+			Text Loader
+			 ↓
+			Document Object
+
+
+		Typical document object:
+
+				{
+				    "text": "Employee is eligible for 12 sick leaves...",
+				    "metadata": {
+					"file_name": "Leave_Policy.pdf",
+					"page": 5
+				    }
+				}
+
+
+		Common Python libraries:
+
+			PDF:
+
+			    PyMuPDF
+			    pypdf
+			    pdfplumber
+
+
+			DOCX:
+
+			    python-docx
+
+
+			Excel:
+
+			    openpyxl
+			    python-calamine
+			    pandas
+
+
+			Images:
+
+			    PIL
+			    OpenCV
+
+
+			OCR:
+
+			    Tesseract
+			    PaddleOCR
+			    RapidOCR
+
+
+			Example using PyMuPDF:
+
+			    import fitz
+
+			    doc = fitz.open("Leave_Policy.pdf")
+
+			    for page_number, page in enumerate(doc):
+				text = page.get_text()
+				print(text)
+
+
+			Important:
+
+				Document loading is NOT the same as text extraction in every system.
+
+				A loader may provide the document/page structure while extraction
+				actually obtains usable text from the content.
+
+
+==================================================
+3. PDF PROCESSING
+==================================================
+
+			PDF processing is especially important in enterprise RAG because PDFs
+			can contain different types of content.
+
+
+			Types of PDFs:
+
+				1. Text-based PDF
+
+				    PDF contains selectable text.
+
+				    Example:
+
+				    Employee Leave Policy
+				    Sick Leave: 12 days
+
+
+				2. Scanned PDF
+
+				    PDF contains scanned images instead of actual text.
+
+				    Example:
+
+				    Scanner
+				       ↓
+				    Image
+				       ↓
+				    PDF
+
+
+				3. Mixed PDF
+
+				    Some pages contain text.
+				    Some pages contain images/scans.
+
+
+				4. Complex PDF
+
+				    PDF may contain:
+
+				    Tables
+				    Images
+				    Headers
+				    Footers
+				    Multiple columns
+				    Forms
+				    Charts
+				    Signatures
+
+
+				PDF processing strategy:
+
+						 PDF
+						  ↓
+					    Detect PDF Type
+						  ↓
+					+---------+---------+
+					|                   |
+				     Text PDF           Scanned PDF
+					|                   |
+				   Text Extraction          OCR
+					|                   |
+					+---------+---------+
+						  ↓
+					     Clean Text
+						  ↓
+					       Chunking
+
+
+				Example:
+
+					PDF
+					 ↓
+					Check extracted text
+					 ↓
+					If text exists → use text extraction
+					 ↓
+					If text is missing/poor → OCR
+					 ↓
+					Combine extracted content
+
+
+					Useful tools:
+
+					    PyMuPDF
+					    pdfplumber
+					    pypdf
+					    pdf2image
+					    PaddleOCR
+					    RapidOCR
+					    Tesseract
+
+
+				For scanned documents:
+
+					PDF
+					 ↓
+					PDF Pages
+					 ↓
+					Images
+					 ↓
+					OCR
+					 ↓
+					Text
+					 ↓
+					Cleaning
+					 ↓
+					Chunking
+
+
+					Example:
+
+					    from pdf2image import convert_from_path
+
+					    pages = convert_from_path(
+						"document.pdf",
+						dpi=200
+					    )
+
+					    for page in pages:
+						# send image to OCR
+						pass
+
+
+				Important PDF processing challenges:
+
+				    1. Scanned pages
+				    2. Tables
+				    3. Multi-column layout
+				    4. Headers and footers
+				    5. Page numbers
+				    6. Images
+				    7. Rotated pages
+				    8. Poor scan quality
+				    9. Handwritten content
+				    10. Large PDFs
+
+
+==================================================
+4. TEXT EXTRACTION
+==================================================
+
+		Text extraction means converting document content into machine-readable
+		text.
+
+
+		Example:
+
+		PDF:
+
+		    Employee Leave Policy
+
+		    Employees are eligible for 12 sick leaves
+		    per calendar year.
+
+
+		Extracted text:
+
+		    "Employee Leave Policy
+
+		     Employees are eligible for 12 sick leaves
+		     per calendar year."
+
+
+		Basic pipeline:
+
+			Document
+			    ↓
+			Extraction
+			    ↓
+			Raw Text
+
+
+			For text PDFs:
+
+			   	  PDF
+				     ↓
+				PyMuPDF
+				     ↓
+				  Text
+
+
+			For scanned PDFs:
+
+			   	 PDF
+			   	  ↓
+				Page Image
+				 ↓
+				OCR
+				 ↓
+				Text
+
+
+			For images:
+
+			   	 Image
+			     	   ↓
+				  OCR
+				    ↓
+				  Text
+
+
+			OCR example:
+
+			    Image
+			        ↓
+			    PaddleOCR
+			        ↓
+			    Detected Text
+			        ↓
+			    Structured Text
+
+
+			Important extraction information to preserve:
+
+			    Page Number
+			    File Name
+			    Section
+			    Table Information
+			    Coordinates when needed
+			    Document Type
+			    Document Version
+
+
+			Example:
+
+			{
+			    "page_no": 5,
+			    "text": "Employees are eligible for 12 sick leaves..."
+			}
+
+
+			Do not immediately remove important information such as:
+
+			    Names
+			    Email addresses
+			    Phone numbers
+			    URLs
+			    Dates
+			    Document IDs
+			    Claim numbers
+			    Invoice numbers
+			    Policy numbers
+
+
+			These may be important for retrieval and downstream extraction.
+
+
+==================================================
+5. CLEANING
+==================================================
+
+			Raw extracted text often contains noise.
+
+			Example raw text:
+
+			    Employee    Leave    Policy
+
+
+			    Page 5
+
+
+				    Employees are eligible for
+				    12 sick leaves per year.
+
+
+			  	    www.company.com
+
+
+			 	    Cleaning converts noisy text into useful text.
+
+
+			Typical cleaning operations:
+
+			    1. Remove unnecessary whitespace
+			    2. Normalize line breaks
+			    3. Remove repeated headers
+			    4. Remove repeated footers
+			    5. Remove unnecessary page numbers
+			    6. Normalize encoding
+			    7. Remove OCR artifacts
+			    8. Normalize special characters
+			    9. Remove duplicate text
+			    10. Preserve meaningful structure
+
+
+		Example:
+
+			Raw:
+
+			    Employee     Leave       Policy
+
+
+			    Page 5
+
+
+			    Employees are eligible for
+			    12 sick leaves per year.
+
+
+			Cleaned:
+
+			    Employee Leave Policy
+
+			    Employees are eligible for 12 sick leaves per year.
+
+
+			Important:
+
+			Cleaning should NOT destroy useful information.
+
+			Bad cleaning:
+
+			    "Claim Number: CLM-2026-00123"
+
+			becomes:
+
+			    "Claim Number"
+
+
+			This loses important information.
+
+			Good cleaning:
+
+			    "Claim Number: CLM-2026-00123"
+
+
+		Preserve:
+
+		    Names
+		    Emails
+		    Phone Numbers
+		    URLs
+		    Dates
+		    IDs
+		    Claim Numbers
+		    Invoice Numbers
+		    Amounts
+		    Section Names
+
+
+==================================================
+6. CHUNKING
+==================================================
+
+		Chunking means splitting a large document into smaller pieces.
+
+		Why?
+
+			LLMs and embedding models cannot efficiently process unlimited amounts
+			of text as one piece.
+
+			Example:
+
+			100-page PDF
+			      ↓
+			Large Text
+			      ↓
+			Chunking
+			      ↓
+			Chunk 1
+			Chunk 2
+			Chunk 3
+			...
+			Chunk 500
+
+
+		Example:
+
+			Original:
+
+			    Employee Leave Policy
+
+			    Employees are eligible for 12 sick leaves per year.
+			    Employees must submit a leave request to their manager.
+			    Emergency leave should be reported immediately.
+			    ...
+
+
+			After chunking:
+
+			    Chunk 1:
+			    Employee Leave Policy
+
+			    Chunk 2:
+			    Employees are eligible for 12 sick leaves per year.
+
+			    Chunk 3:
+			    Employees must submit a leave request to their manager.
+
+			    Chunk 4:
+			    Emergency leave should be reported immediately.
+
+
+			The goal is:
+
+			    Smaller searchable units
+				  +
+			    Enough context
+				  +
+			    Meaningful boundaries
+
+
+==================================================
+TYPES OF CHUNKING
+==================================================
+
+		1. Fixed-Size Chunking
+
+		Example:
+
+		    Every 500 characters/tokens.
+
+
+		2. Recursive Character Chunking
+
+			Splits using separators such as:
+
+			    Paragraph
+			    Sentence
+			    Word
+			    Character
+
+
+			Typical order:
+
+			    "\n\n"
+			    "\n"
+			    " "
+			    ""
+
+
+		3. Sentence-Based Chunking
+
+			Split according to sentences.
+
+
+		4. Paragraph-Based Chunking
+
+			Split according to paragraphs.
+
+
+		5. Semantic Chunking
+
+			Split based on semantic similarity.
+
+
+		6. Document Structure-Based Chunking
+
+			Use:
+
+			    Title
+			    Section
+			    Subsection
+			    Paragraph
+			    Table
+
+
+		7. Markdown Chunking
+
+			Use:
+
+			    Headers
+			    Sections
+			    Lists
+			    Code blocks
+
+
+		8. Table-Aware Chunking
+
+			Treat tables carefully so that row/column relationships are preserved.
+
+
+==================================================
+RECURSIVE CHUNKING
+==================================================
+
+			A common approach for RAG is recursive character splitting.
+
+			Example:
+
+				Text
+				 ↓
+				Try paragraph separator
+				 ↓
+				If chunk is still too large
+				 ↓
+				Try line separator
+				 ↓
+				If still too large
+				 ↓
+				Try word separator
+				 ↓
+				If still too large
+				 ↓
+				Split further
+
+
+			Example:
+
+			    from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+			    splitter = RecursiveCharacterTextSplitter(
+				chunk_size=1000,
+				chunk_overlap=200
+			    )
+
+			    chunks = splitter.split_text(text)
+
+
+			Result:
+
+			    Chunk 1
+			    Chunk 2
+			    Chunk 3
+			    ...
+
+
+==================================================
+7. CHUNK SIZE
+==================================================
+
+Chunk size defines approximately how much text is placed into each
+chunk.
+
+Example:
+
+    chunk_size = 500
+
+means the splitter attempts to create chunks around that size,
+depending on the splitting strategy and unit used.
+
+
+Example:
+
+Large Document
+      ↓
+500-token chunks
+
+
+Possible sizes:
+
+    200
+    300
+    500
+    800
+    1000
+    1500
+    2000
+
+
+There is NO universal best chunk size.
+
+
+Chunk size depends on:
+
+    1. Document type
+    2. Content structure
+    3. Embedding model
+    4. Retrieval method
+    5. Query type
+    6. LLM context window
+    7. Reranker
+    8. Expected answer size
+
+
+Example:
+
+Short FAQ:
+
+    200-400 tokens
+
+
+Technical documentation:
+
+    400-800 tokens
+
+
+Long policy documents:
+
+    500-1000 tokens
+
+
+Complex financial documents:
+
+    300-800 tokens
+
+
+These are starting points, NOT fixed rules.
+
+
+Important:
+
+Chunk size should be evaluated experimentally.
+
+
+Too Small:
+
+    Document
+      ↓
+    Tiny chunks
+      ↓
+    Missing context
+      ↓
+    Poor retrieval
+
+
+Too Large:
+
+    Document
+      ↓
+    Huge chunks
+      ↓
+    Too much unrelated information
+      ↓
+    Poor retrieval precision
+
+
+Ideal:
+
+    Meaningful Chunk
+          ↓
+    Enough Context
+          ↓
+    Good Retrieval
+          ↓
+    Better Answer
+
+
+==================================================
+CHUNK SIZE AND EMBEDDINGS
+==================================================
+
+Embedding model characteristics matter.
+
+Examples:
+
+    SentenceTransformers
+    BGE
+    E5
+    OpenAI Embeddings
+    Qwen embedding models
+
+
+Do NOT choose chunk size only because an embedding model has a certain
+maximum sequence length.
+
+Instead consider:
+
+    Document Structure
+    Semantic Meaning
+    Query Type
+    Model Limits
+    Retrieval Quality
+
+
+Important distinction:
+
+Embedding model
+    ↓
+Converts chunk → vector
+
+
+LLM
+    ↓
+Uses retrieved chunks → answer
+
+
+Therefore chunk size must work well for both retrieval and generation.
+
+
+==================================================
+8. CHUNK OVERLAP
+==================================================
+
+Chunk overlap means repeating some content between consecutive chunks.
+
+
+Example:
+
+Chunk Size = 500 tokens
+Overlap = 100 tokens
+
+
+Then:
+
+Chunk 1:
+    Tokens 1 - 500
+
+Chunk 2:
+    Tokens 401 - 900
+
+Chunk 3:
+    Tokens 801 - 1300
+
+
+The overlapping section helps preserve context across chunk boundaries.
+
+
+Without overlap:
+
+    Chunk 1:
+    "...employee must submit the request to the"
+
+
+    Chunk 2:
+    "manager before taking leave."
+
+
+The meaning is split across chunks.
+
+
+With overlap:
+
+    Chunk 1:
+    "...employee must submit the request to the manager"
+
+
+    Chunk 2:
+    "submit the request to the manager before taking leave."
+
+
+The important relationship can remain available.
+
+
+Typical starting values:
+
+    Chunk Size = 500
+    Chunk Overlap = 50-100
+
+
+or:
+
+    Chunk Size = 1000
+    Chunk Overlap = 100-200
+
+
+Again:
+
+There is NO universal optimal overlap.
+
+
+Too little overlap:
+
+    Important context may be lost.
+
+
+Too much overlap:
+
+    Duplicate information
+        ↓
+    More chunks
+        ↓
+    More storage
+        ↓
+    More retrieval noise
+        ↓
+    Higher cost
+
+
+A common starting range is:
+
+    10% - 20% overlap
+
+
+Then evaluate retrieval performance.
+
+
+==================================================
+CHUNK SIZE + OVERLAP EXAMPLE
+==================================================
+
+Suppose:
+
+    Document = 10,000 tokens
+    Chunk Size = 500
+    Overlap = 100
+
+
+Conceptually:
+
+Chunk 1:
+    1 - 500
+
+Chunk 2:
+    401 - 900
+
+Chunk 3:
+    801 - 1300
+
+Chunk 4:
+    1201 - 1700
+
+...
+
+
+Overlap:
+
+    100 tokens
+
+
+Step size:
+
+    500 - 100 = 400 tokens
+
+
+Approximate number of chunks:
+
+    (10,000 - 100) / 400
+    ≈ 24.75
+
+So approximately 25 chunks.
+
+Actual chunk count can differ because real splitters follow
+text boundaries.
+
+
+==================================================
+9. METADATA CREATION
+==================================================
+
+Metadata is additional information stored with each chunk.
+
+Metadata helps with:
+
+    Filtering
+    Retrieval
+    Traceability
+    Citations
+    Debugging
+    Document management
+    Security
+
+
+Example chunk:
+
+Text:
+
+    "Employees are eligible for 12 sick leaves per year."
+
+
+Metadata:
+
+{
+    "file_name": "Leave_Policy.pdf",
+    "page_number": 5,
+    "chunk_id": "5_2",
+    "document_type": "HR_POLICY",
+    "section": "Sick Leave",
+    "version": "2026",
+    "source": "HR",
+    "language": "en"
+}
+
+
+==================================================
+USEFUL METADATA FIELDS
+==================================================
+
+Recommended fields:
+
+    file_name
+    file_path
+    document_id
+    document_type
+    page_number
+    chunk_id
+    section
+    subsection
+    document_version
+    document_date
+    source
+    author
+    language
+    created_at
+    updated_at
+
+
+For financial documents:
+
+    document_type
+    invoice_number
+    claim_number
+    customer_id
+    vendor_id
+    page_number
+    section
+
+
+For legal documents:
+
+    document_type
+    case_number
+    section
+    clause
+    page_number
+    document_date
+
+
+==================================================
+CHUNK ID
+==================================================
+
+A chunk should have a unique identifier.
+
+Example:
+
+    Page 1:
+        1_1
+        1_2
+        1_3
+
+    Page 2:
+        2_1
+        2_2
+        2_3
+
+
+Or:
+
+    DOC001_CHUNK001
+    DOC001_CHUNK002
+    DOC001_CHUNK003
+
+
+Example:
+
+{
+    "chunk_id": "LeavePolicy_5_2",
+    "file_name": "Leave_Policy.pdf",
+    "page_number": 5
+}
+
+
+Chunk IDs help with:
+
+    Debugging
+    Retrieval tracing
+    Citations
+    Updating individual chunks
+    Document reconstruction
+
+
+==================================================
+METADATA + VECTOR DATABASE
+==================================================
+
+A vector database record can conceptually look like:
+
+
+{
+    "id": "LeavePolicy_5_2",
+
+    "document": "Employees are eligible for 12 sick leaves per year.",
+
+    "embedding": [
+        0.12,
+        -0.43,
+        0.78,
+        ...
+    ],
+
+    "metadata": {
+        "file_name": "Leave_Policy.pdf",
+        "page_number": 5,
+        "chunk_id": "LeavePolicy_5_2",
+        "section": "Sick Leave",
+        "document_type": "HR_POLICY"
+    }
+}
+
+
+==================================================
+METADATA FILTERING
+==================================================
+
+Metadata allows targeted retrieval.
+
+
+Example:
+
+User:
+
+    "What is the leave policy?"
+
+
+Instead of searching every document:
+
+    Filter:
+
+    document_type = "HR_POLICY"
+
+
+Then perform similarity search.
+
+
+Example:
+
+    metadata filter
+          ↓
+    HR_POLICY documents
+          ↓
+    Vector Search
+          ↓
+    Relevant chunks
+
+
+Another example:
+
+    document_type = "CLAIM"
+    year = 2026
+    customer_id = "C001"
+
+
+This is especially useful in enterprise RAG.
+
+
+==================================================
+COMPLETE DOCUMENT PROCESSING PIPELINE
+==================================================
+
+                 DATA SOURCES
+                      |
+       +--------------+--------------+
+       |              |              |
+      PDF            DOCX          Excel
+       |              |              |
+       +--------------+--------------+
+                      |
+                      v
+              Document Loading
+                      |
+                      v
+             Document Validation
+                      |
+                      v
+              PDF Type Detection
+                      |
+             +--------+--------+
+             |                 |
+         Text PDF         Scanned PDF
+             |                 |
+       Text Extraction        OCR
+             |                 |
+             +--------+--------+
+                      |
+                      v
+                Text Cleaning
+                      |
+                      v
+                 Structure
+                Detection
+                      |
+                      v
+                  Chunking
+                      |
+                      v
+                Chunk Size
+                      |
+                      v
+               Chunk Overlap
+                      |
+                      v
+             Metadata Creation
+                      |
+                      v
+                 Embeddings
+                      |
+                      v
+               Vector Database
+
+
+==================================================
+PRODUCTION DOCUMENT PROCESSING
+==================================================
+
+A production system should consider:
+
+
+1. Duplicate Detection
+
+Document
+   ↓
+Hash / Content Check
+   ↓
+Duplicate?
+
+
+2. Versioning
+
+Document
+   ↓
+Version Detection
+   ↓
+v1 / v2 / v3
+
+
+3. Incremental Processing
+
+If only one document changes:
+
+    Do NOT necessarily reprocess everything.
+
+Process:
+
+    Changed Document
+         ↓
+    Re-extract
+         ↓
+    Re-chunk
+         ↓
+    Re-embed
+         ↓
+    Update Vector DB
+
+
+4. Access Control
+
+Metadata can include:
+
+    department
+    access_level
+    user_group
+
+
+Then retrieval can be filtered according to permissions.
+
+
+5. Error Handling
+
+Possible failures:
+
+    Corrupted PDF
+    Password-protected PDF
+    OCR failure
+    Empty text
+    Encoding problems
+    Unsupported format
+    Huge document
+    API timeout
+
+
+Production pipeline:
+
+Document
+    ↓
+Validation
+    ↓
+Processing
+    ↓
+Error Handling
+    ↓
+Logging
+    ↓
+Retry
+    ↓
+Vector DB
+
+
+==================================================
+DOCUMENT PROCESSING EXAMPLE
+==================================================
+
+INPUT:
+
+    claim_001.pdf
+
+
+Step 1: Load
+
+    PDF
+     ↓
+    PyMuPDF
+
+
+Step 2: Detect
+
+    Text extraction successful?
+
+    YES → use extracted text
+
+    NO → OCR
+
+
+Step 3: Clean
+
+    Remove:
+        repeated headers
+        repeated footers
+        unnecessary whitespace
+
+    Preserve:
+        claim number
+        customer name
+        dates
+        amounts
+        policy number
+
+
+Step 4: Chunk
+
+    Chunk Size = 500 tokens
+    Chunk Overlap = 100 tokens
+
+
+Step 5: Metadata
+
+{
+    "file_name": "claim_001.pdf",
+    "document_type": "CLAIM",
+    "page_number": 3,
+    "chunk_id": "claim_001_3_2",
+    "section": "Claim Details"
+}
+
+
+Step 6:
+
+    Chunk
+      ↓
+    Embedding
+      ↓
+    Vector DB
+
+
+==================================================
+IMPORTANT DOCUMENT PROCESSING PRINCIPLES
+==================================================
+
+1. Preserve document structure whenever possible.
+
+2. Preserve important identifiers.
+
+3. Do not blindly remove numbers.
+
+4. Do not remove names, emails, URLs, dates, IDs, or claim numbers
+   if they are relevant to retrieval.
+
+5. Use OCR for scanned documents.
+
+6. Choose chunk boundaries based on meaning.
+
+7. Start with a reasonable chunk size and evaluate.
+
+8. Use overlap to preserve boundary context.
+
+9. Avoid excessive overlap.
+
+10. Store useful metadata.
+
+11. Use metadata filtering for enterprise retrieval.
+
+12. Track document versions.
+
+13. Handle duplicate documents.
+
+14. Support incremental updates.
+
+15. Log extraction and processing errors.
+
+
+==================================================
+COMMON INTERVIEW QUESTIONS
+==================================================
+
+Q1. Why do we chunk documents?
+
+Answer:
+
+Large documents are split into smaller meaningful pieces so that
+retrieval can identify relevant information more precisely and the
+retrieved context can fit efficiently into the model's context window.
+
+
+Q2. What happens if chunks are too small?
+
+Answer:
+
+Too-small chunks may lose contextual information and make it difficult
+for the retriever or LLM to understand the complete meaning.
+
+
+Q3. What happens if chunks are too large?
+
+Answer:
+
+Large chunks may contain unrelated information, reduce retrieval
+precision, increase context size, and increase processing cost.
+
+
+Q4. What is chunk overlap?
+
+Answer:
+
+Chunk overlap is the repeated content shared between consecutive chunks.
+It helps preserve context when important information crosses a chunk
+boundary.
+
+
+Q5. Why do we need metadata?
+
+Answer:
+
+Metadata provides additional information about a chunk, such as file
+name, page number, document type, section, and version. It supports
+filtering, traceability, citations, debugging, and access control.
+
+
+Q6. How do you process scanned PDFs?
+
+Answer:
+
+First determine whether the PDF contains usable text. If it is scanned,
+render the pages as images and apply OCR using tools such as PaddleOCR,
+RapidOCR, or Tesseract. Then clean and chunk the extracted text.
+
+
+Q7. Is there a universal best chunk size?
+
+Answer:
+
+No. Chunk size depends on document structure, content type, embedding
+model, retrieval strategy, query type, reranker, and LLM context
+requirements. It should be selected experimentally and evaluated using
+retrieval metrics and end-to-end answer quality.
+
+
+Q8. Why not send the entire document to the LLM?
+
+Answer:
+
+Large documents may exceed context limits, increase latency and cost,
+and introduce irrelevant information. Retrieval selects the most
+relevant content before generation.
+
+
+==================================================
+DOCUMENT PROCESSING QUICK REVISION
+==================================================
+
+DATA COLLECTION
+    ↓
+Collect PDFs, DOCX, Excel, TXT, Images, etc.
+
+DOCUMENT LOADING
+    ↓
+Load documents using appropriate loaders.
+
+PDF PROCESSING
+    ↓
+Detect text PDF vs scanned PDF.
+
+TEXT EXTRACTION
+    ↓
+Extract text using parsers or OCR.
+
+CLEANING
+    ↓
+Remove noise while preserving important information.
+
+CHUNKING
+    ↓
+Split text into meaningful pieces.
+
+CHUNK SIZE
+    ↓
+Control how much content each chunk contains.
+
+CHUNK OVERLAP
+    ↓
+Preserve context between neighboring chunks.
+
+METADATA
+    ↓
+Store file, page, section, type, version, IDs, etc.
+
+EMBEDDING
+    ↓
+Convert chunks into vectors.
+
+VECTOR DATABASE
+    ↓
+Store chunks + vectors + metadata.
+
+
+==================================================
+ONE-LINE MEMORY
+==================================================
+
+Document Processing:
+
+"Collect the documents,
+load them,
+extract the content,
+clean the text,
+split it into meaningful chunks,
+control chunk size and overlap,
+and attach metadata before embedding and storing it."
+
+
+COMPLETE FLOW:
+
+DATA
+ ↓
+LOAD
+ ↓
+EXTRACT
+ ↓
+OCR
+ ↓
+CLEAN
+ ↓
+CHUNK
+ ↓
+CHUNK SIZE
+ ↓
+OVERLAP
+ ↓
+METADATA
+ ↓
+EMBEDDING
+ ↓
+VECTOR DATABASE
+

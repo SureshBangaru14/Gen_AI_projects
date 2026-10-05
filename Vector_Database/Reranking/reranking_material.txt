@@ -986,3 +986,600 @@ production-style single-file RAG implementation with your exact architecture:
 			Qwen / Ollama
 			   ↓
 			Structured JSON Answer
+			
+			
+Optimization :
+
+	Definition :
+
+		- RAG optimization is the process of improving the retrieval,
+		  reranking, model inference, caching, and LLM stages so that
+		  the system becomes faster, more efficient, scalable, and
+		  cost-effective.
+
+		- The main goals of RAG optimization are:
+
+			1. Reduce latency
+			2. Increase throughput
+			3. Reduce memory usage
+			4. Avoid repeated computation
+			5. Reduce LLM/API cost
+
+		- In this section, we use five important optimization techniques:
+
+			1. Latency Reduction
+			2. Batch Reranking
+			3. Model Quantization
+			4. Cache Results
+			5. Cost Optimization
+
+
+RAG Optimization Flow :
+
+		User Query
+		     ↓
+		Query Embedding
+		     ↓
+		ChromaDB
+		     ↓
+		Top-K Retrieval
+		     ↓
+		Batch Reranking
+		     ↓
+		Quantized Reranker
+		     ↓
+		Top-N Results
+		     ↓
+		Cache
+		     ↓
+		LLM / Qwen
+		     ↓
+		Final Answer
+
+
+1. Latency Reduction :
+
+	Definition :
+
+		- Latency is the amount of time required by the RAG system
+		  to process a user query and return the final answer.
+
+		- Lower latency means the user receives the answer faster.
+
+		- In RAG, one important source of latency is the reranking
+		  stage because the reranker must evaluate multiple
+		  query-document pairs.
+
+	Example :
+
+		Query
+		  ↓
+		ChromaDB
+		  ↓
+		Top 100
+		  ↓
+		Reranker
+		  ↓
+		Top 5
+
+		Here the reranker processes 100 candidates.
+
+	Optimized :
+
+		Query
+		  ↓
+		ChromaDB
+		  ↓
+		Top 20
+		  ↓
+		Reranker
+		  ↓
+		Top 5
+
+		Now the reranker processes only 20 candidates.
+
+	Code :
+
+		TOP_K = 20
+
+		- TOP_K controls how many candidates are retrieved from
+		  the first-stage vector database.
+
+		- Lower TOP_K can reduce reranking latency.
+
+		- However, reducing TOP_K too much can reduce recall because
+		  the relevant document may not be retrieved.
+
+		Trade-off :
+
+		Lower TOP_K
+		     ↓
+		Lower latency
+		     ↓
+		Possibly lower recall
+
+
+2. Batch Reranking :
+
+	Definition :
+
+		- Batch reranking means processing multiple query-document
+		  pairs together instead of processing each document
+		  individually.
+
+	Without Batch :
+
+		Query + Document 1 → Reranker
+		Query + Document 2 → Reranker
+		Query + Document 3 → Reranker
+		Query + Document 4 → Reranker
+		...
+		Query + Document 20 → Reranker
+
+	With Batch :
+
+		Query
+		  ↓
+		┌─────────────────────┐
+		│ Document 1          │
+		│ Document 2          │
+		│ Document 3          │
+		│ ...                 │
+		│ Document 16         │
+		└─────────────────────┘
+		  ↓
+		Reranker
+		  ↓
+		Scores
+
+	Code :
+
+		RERANK_BATCH_SIZE = 16
+
+		scores = reranker.predict(
+			pairs,
+			batch_size=RERANK_BATCH_SIZE
+		)
+
+		- The batch size determines how many query-document pairs
+		  are processed together.
+
+	Example :
+
+		TOP_K = 50
+		BATCH_SIZE = 16
+
+		Processing becomes approximately:
+
+			Batch 1 → 16 documents
+			Batch 2 → 16 documents
+			Batch 3 → 16 documents
+			Batch 4 → 2 documents
+
+	Benefits :
+
+		- Better GPU utilization
+		- Higher inference throughput
+		- Fewer individual inference operations
+		- Useful when reranking many candidates
+
+	Trade-off :
+
+		Larger batch size
+		     ↓
+		More memory required
+
+	Smaller batch size
+		     ↓
+		Lower memory usage
+		     ↓
+		Possibly lower throughput
+
+
+3. Model Quantization :
+
+	Definition :
+
+		- Model quantization is the process of representing model
+		  parameters using lower numerical precision.
+
+		- It is mainly used to reduce model memory requirements
+		  and potentially improve inference efficiency.
+
+	Common Precision :
+
+		FP32
+		  ↓
+		FP16
+		  ↓
+		INT8
+		  ↓
+		INT4
+
+	Example :
+
+		FP32
+		32-bit representation
+
+		FP16
+		16-bit representation
+
+		INT8
+		8-bit representation
+
+		INT4
+		4-bit representation
+
+	Code :
+
+		quantization_config = BitsAndBytesConfig(
+			load_in_8bit=True
+		)
+
+		model = AutoModelForSequenceClassification.from_pretrained(
+			model_name,
+			quantization_config=quantization_config,
+			device_map="auto"
+		)
+
+		- load_in_8bit=True tells the supported model-loading
+		  stack to load the model using 8-bit quantization.
+
+	Benefits :
+
+		- Lower memory requirement
+		- Can allow larger models to fit on available hardware
+		- May improve inference efficiency depending on hardware
+		  and runtime
+
+	Trade-off :
+
+		Lower precision
+		     ↓
+		Lower memory
+		     ↓
+		Potential efficiency improvement
+		     ↓
+		Possible quality/accuracy change
+
+		Therefore, quantized and non-quantized models should be
+		benchmarked on the actual RAG evaluation dataset.
+
+
+4. Cache Results :
+
+	Definition :
+
+		- Caching means storing previously calculated results so
+		  that the system does not have to perform the same
+		  computation again.
+
+	Without Cache :
+
+		Query 1
+		  ↓
+		Embedding
+		  ↓
+		ChromaDB
+		  ↓
+		Reranker
+		  ↓
+		LLM
+		  ↓
+		Answer
+
+		Same Query 2
+		  ↓
+		Embedding
+		  ↓
+		ChromaDB
+		  ↓
+		Reranker
+		  ↓
+		LLM
+		  ↓
+		Same Answer
+
+	With Cache :
+
+		Query 1
+		  ↓
+		Embedding
+		  ↓
+		ChromaDB
+		  ↓
+		Reranker
+		  ↓
+		LLM
+		  ↓
+		Answer
+		  ↓
+		Cache
+
+		Same Query 2
+		  ↓
+		Cache HIT
+		  ↓
+		Return previous result
+
+	Code :
+
+		@lru_cache(maxsize=1000)
+		def ask(query):
+			...
+
+		- maxsize=1000 means the local cache can retain up to
+		  approximately 1000 distinct argument combinations.
+
+	Cache Flow :
+
+		Query
+		  ↓
+		Cache?
+		  │
+		  ├── YES → Return cached result
+		  │
+		  └── NO
+		       ↓
+		    RAG Pipeline
+		       ↓
+		    Store Result
+		       ↓
+		    Return Answer
+
+	Benefits :
+
+		- Avoids repeated embedding
+		- Avoids repeated vector search
+		- Avoids repeated reranking
+		- Avoids repeated LLM generation
+		- Reduces latency
+		- Can reduce API/LLM cost
+
+	Production :
+
+		- Python lru_cache is suitable for a simple single-process
+		  example.
+
+		- Distributed applications generally use a shared cache
+		  such as Redis.
+
+		- Cache invalidation is important when the underlying
+		  documents or permissions change.
+
+
+5. Cost Optimization :
+
+	Definition :
+
+		- Cost optimization means reducing the amount of expensive
+		  computation and paid model usage while maintaining
+		  acceptable answer quality.
+
+		- In RAG, the LLM is often one of the more expensive stages,
+		  especially when using paid APIs.
+
+	Without Optimization :
+
+		ChromaDB
+		     ↓
+		Top 20
+		     ↓
+		Reranker
+		     ↓
+		20 Documents
+		     ↓
+		LLM
+		     ↓
+		Many Input Tokens
+
+	Optimized :
+
+		ChromaDB
+		     ↓
+		Top 20
+		     ↓
+		Reranker
+		     ↓
+		Top 3
+		     ↓
+		LLM
+		     ↓
+		Fewer Input Tokens
+
+	Code :
+
+		TOP_N = 3
+
+		- TOP_N controls how many reranked documents are finally
+		  passed to the LLM.
+
+	Example :
+
+		TOP_K = 20
+
+		ChromaDB retrieves:
+
+			20 candidates
+
+		Reranker evaluates:
+
+			20 candidates
+
+		Reranker selects:
+
+			Top 3
+
+		LLM receives:
+
+			3 chunks
+
+	Benefits :
+
+		- Fewer input tokens
+		- Smaller context
+		- Lower LLM processing
+		- Potentially lower API cost
+		- Less irrelevant information in the prompt
+
+
+Complete Optimization Example :
+
+		TOP_K = 20
+
+		RERANK_BATCH_SIZE = 16
+
+		TOP_N = 3
+
+		quantization_config = BitsAndBytesConfig(
+			load_in_8bit=True
+		)
+
+		@lru_cache(maxsize=1000)
+		def ask(query):
+			...
+
+
+Complete RAG Optimization Flow :
+
+		User Query
+		     ↓
+		Query Embedding
+		     ↓
+		ChromaDB
+		     ↓
+		TOP_K = 20
+		     │
+		     └── Latency Reduction
+		     ↓
+		20 Candidates
+		     ↓
+		Batch Reranking
+		     │
+		     └── Batch Size = 16
+		     ↓
+		Quantized Reranker
+		     │
+		     └── INT8
+		     ↓
+		Reranked Candidates
+		     ↓
+		TOP_N = 3
+		     │
+		     └── Cost Optimization
+		     ↓
+		3 Relevant Chunks
+		     ↓
+		Cache Check
+		     │
+		     ├── Cache HIT
+		     │      ↓
+		     │   Return Result
+		     │
+		     └── Cache MISS
+		            ↓
+		         Qwen / LLM
+		            ↓
+		         Answer
+		            ↓
+		         Cache Result
+
+
+Optimization Summary :
+
+	1. Latency Reduction :
+
+		TOP_K = 20
+
+		- Limits the number of candidates processed by the
+		  expensive reranking stage.
+
+	2. Batch Reranking :
+
+		RERANK_BATCH_SIZE = 16
+
+		- Processes multiple query-document pairs together.
+
+	3. Model Quantization :
+
+		load_in_8bit=True
+
+		- Reduces model memory requirements using lower precision.
+
+	4. Cache Results :
+
+		@lru_cache(maxsize=1000)
+
+		- Avoids repeating the same RAG computation for cached queries.
+
+	5. Cost Optimization :
+
+		TOP_N = 3
+
+		- Sends only the most relevant reranked chunks to the LLM.
+
+
+Easy Interview Explanation :
+
+		"First, I reduce latency by limiting the number of
+		candidates retrieved from the vector database.
+
+		Then I use batch reranking to process multiple
+		query-document pairs efficiently.
+
+		I use model quantization to reduce reranker memory
+		requirements.
+
+		I cache repeated queries to avoid unnecessary
+		recomputation.
+
+		Finally, I reduce LLM cost by sending only the top
+		relevant chunks to the generation model."
+
+
+Key Formula :
+
+		First Stage :
+
+			Large Document Collection
+			        ↓
+			     Vector DB
+			        ↓
+			      TOP-K
+
+
+		Second Stage :
+
+			TOP-K Candidates
+			        ↓
+			    Reranker
+			        ↓
+			      TOP-N
+
+
+		Generation :
+
+			TOP-N Chunks
+			        ↓
+			       LLM
+			        ↓
+			     Answer
+
+
+Core Principle :
+
+		Recall First
+		     ↓
+		Retrieve enough candidates
+
+		Precision Second
+		     ↓
+		Rerank candidates
+
+		Efficiency Third
+		     ↓
+		Optimize latency, memory, cache, and cost
+
+		Generation Last
+		     ↓
+		Send only the most relevant context to the LLM
