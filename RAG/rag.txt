@@ -2717,3 +2717,3121 @@ EMBEDDING
  ↓
 VECTOR DATABASE
 
+
+
+
+# 3. RAG PIPELINE COMPONENTS
+
+		RAG Query Pipeline:
+
+			User Query
+			      ↓
+			Query Processing
+			      ↓
+			Embedding Generation
+			      ↓
+			Vector Search
+			      ↓
+			Reranking
+			      ↓
+			Context Selection
+			      ↓
+			Prompt Construction
+			      ↓
+			LLM Response Generation
+			      ↓
+			Final Answer
+
+
+==================================================
+1. INPUT QUERY
+==================================================
+
+		Input Query is the question or request provided by the user.
+
+		It is the starting point of the RAG query pipeline.
+
+		Example:
+
+			"How many sick leaves can an employee take?"
+
+		Basic flow:
+
+			User
+			  ↓
+			Question
+			  ↓
+			RAG Pipeline
+
+
+		Examples:
+
+			"What is the company's leave policy?"
+
+			"Why was the insurance claim rejected?"
+
+			"What is the invoice payment deadline?"
+
+			"What are the BOL details?"
+
+			"What is the refund policy?"
+
+
+		The goal is to understand what information the user is
+		requesting and retrieve the relevant information from the
+		knowledge base.
+
+
+==================================================
+2. QUERY PROCESSING
+==================================================
+
+		Query Processing improves or transforms the original user
+		query before retrieval.
+
+		Query Processing can include:
+
+			1. Query Rewrite
+			2. Query Expansion
+			3. Query Transformation
+
+
+		Flow:
+
+			Original Query
+			      ↓
+			Query Processing
+			      ↓
+			Improved / Transformed Query
+			      ↓
+			Embedding
+			      ↓
+			Retrieval
+
+
+		Why Query Processing is needed:
+
+			Users may provide:
+
+				- Short queries
+				- Ambiguous queries
+				- Incomplete queries
+				- Conversational questions
+				- Misspelled queries
+				- Domain-specific terminology
+
+
+		Example:
+
+			Original Query:
+
+				"leave?"
+
+
+			Processed Query:
+
+				"What is the employee leave policy?"
+
+
+		Query processing improves the chance of retrieving
+		the correct information.
+
+
+--------------------------------------------------
+2.1 QUERY REWRITE
+--------------------------------------------------
+
+		Query Rewrite means changing the wording of the original
+		query to make it clearer and more suitable for retrieval.
+
+		The original meaning or intent should remain the same.
+
+
+		Example:
+
+			Original Query:
+
+				"How much leave can I take?"
+
+
+			Rewritten Query:
+
+				"How many leave days is an employee entitled to?"
+
+
+		Another example:
+
+			Conversation:
+
+				User:
+
+				"What is the refund period?"
+
+
+				User:
+
+				"What about international orders?"
+
+
+			The second query is incomplete.
+
+			Query Rewrite can convert it to:
+
+				"What is the refund period for international orders?"
+
+
+		Flow:
+
+			Original Query
+			      ↓
+			Query Rewriter
+			      ↓
+			Clear Query
+			      ↓
+			Retriever
+
+
+		Benefits:
+
+			- Resolves ambiguity
+			- Adds missing conversational context
+			- Improves search quality
+			- Makes the query retrieval-friendly
+
+
+		Important:
+
+			Query Rewrite should preserve the user's original intent.
+
+
+--------------------------------------------------
+2.2 QUERY EXPANSION
+--------------------------------------------------
+
+		Query Expansion adds related terms, synonyms, or concepts
+		to the original query.
+
+		Example:
+
+			Original Query:
+
+				"sick leave"
+
+
+			Expanded Query:
+
+				"sick leave, medical leave, illness leave,
+				 employee leave"
+
+
+		Another example:
+
+			Original Query:
+
+				"BOL"
+
+
+			Expanded Query:
+
+				"BOL, Bill of Lading, shipping document,
+				 freight document, carrier document"
+
+
+		Why Query Expansion?
+
+			The user and the document may use different terminology.
+
+
+		Example:
+
+			User Query:
+
+				"sick leave"
+
+
+			Document:
+
+				"medical leave"
+
+
+		Query expansion can help connect these related concepts.
+
+
+		Flow:
+
+			Original Query
+			      ↓
+			Query Expansion
+			      ↓
+			Related Terms
+			      ↓
+			Retrieval
+
+
+		Types of Query Expansion:
+
+			1. Synonym Expansion
+			2. Keyword Expansion
+			3. Semantic Expansion
+			4. Domain-Specific Expansion
+			5. LLM-Based Expansion
+
+
+--------------------------------------------------
+2.3 QUERY TRANSFORMATION
+--------------------------------------------------
+
+		Query Transformation converts the original query into
+		one or more alternative queries or representations.
+
+
+		Example:
+
+			Original Query:
+
+				"Why was my insurance claim rejected?"
+
+
+			Transformed Queries:
+
+				Query 1:
+				"Insurance claim rejection reason"
+
+
+				Query 2:
+				"Claim denial reasons"
+
+
+				Query 3:
+				"Insurance claim eligibility conditions"
+
+
+		The system can retrieve results for multiple queries and
+		combine the results.
+
+
+		Flow:
+
+				Original Query
+				      ↓
+				Query Transformation
+				      ↓
+			  +-------+-------+-------+
+			  ↓       ↓       ↓
+			Query 1 Query 2 Query 3
+			  ↓       ↓       ↓
+			Retrieve Retrieve Retrieve
+			  ↓       ↓       ↓
+			  +-------+-------+-------+
+				      ↓
+				Combined Results
+				      ↓
+				    Reranking
+
+
+		Benefits:
+
+			- Improves retrieval coverage
+			- Handles complex questions
+			- Finds information using different terminology
+			- Useful for ambiguous queries
+
+
+==================================================
+QUERY REWRITE vs QUERY EXPANSION vs QUERY TRANSFORMATION
+==================================================
+
+		QUERY REWRITE
+
+			Purpose:
+
+				Make the original question clearer.
+
+			Example:
+
+				"leave?"
+
+				    ↓
+
+				"What is the employee leave policy?"
+
+
+		QUERY EXPANSION
+
+			Purpose:
+
+				Add related terms or concepts.
+
+			Example:
+
+				"sick leave"
+
+				    ↓
+
+				"sick leave, medical leave, illness leave"
+
+
+		QUERY TRANSFORMATION
+
+			Purpose:
+
+				Create alternative queries or representations.
+
+			Example:
+
+				"Why was my claim rejected?"
+
+				    ↓
+
+				"claim rejection reason"
+				"claim denial reason"
+				"claim eligibility conditions"
+
+
+		Easy Memory:
+
+			Rewrite
+			   ↓
+			Improve the question
+
+
+			Expansion
+			   ↓
+			Add related terms
+
+
+			Transformation
+			   ↓
+			Create alternative search queries
+
+
+==================================================
+3. EMBEDDING GENERATION
+==================================================
+
+		Embedding Generation converts the processed query into
+		a numerical vector.
+
+		Example:
+
+			Query:
+
+				"How many sick leaves are allowed?"
+
+
+			Embedding Model:
+
+				SentenceTransformer
+				OpenAI Embeddings
+				BGE
+				E5
+				Qwen Embedding Model
+
+
+			Output:
+
+				[0.12, -0.43, 0.71, 0.25, ...]
+
+
+		The vector represents the semantic meaning of the query.
+
+
+		Flow:
+
+			Query
+			  ↓
+			Embedding Model
+			  ↓
+			Query Vector
+
+
+		Documents are also converted into vectors during the
+		indexing phase.
+
+
+			Document Chunk
+			      ↓
+			Embedding Model
+			      ↓
+			Document Vector
+
+
+		At query time:
+
+			User Query
+			      ↓
+			Query Embedding
+			      ↓
+			Query Vector
+			      ↓
+			Vector Database
+
+
+		The query vector is compared with document vectors.
+
+
+--------------------------------------------------
+QUERY EMBEDDING vs DOCUMENT EMBEDDING
+--------------------------------------------------
+
+		INDEXING TIME:
+
+			Document
+			    ↓
+			Chunking
+			    ↓
+			Embedding
+			    ↓
+			Document Vector
+			    ↓
+			Vector Database
+
+
+		QUERY TIME:
+
+			User Query
+			    ↓
+			Embedding
+			    ↓
+			Query Vector
+			    ↓
+			Vector Database
+
+
+		The query and document representations should generally
+		be compatible and belong to the same embedding space.
+
+
+		Example:
+
+			Document:
+
+				"Employees are eligible for 12 sick leaves per year."
+
+
+			Document Vector:
+
+				[0.10, 0.43, -0.21, ...]
+
+
+			Query:
+
+				"How many sick leaves can I take?"
+
+
+			Query Vector:
+
+				[0.11, 0.41, -0.19, ...]
+
+
+		Because the meanings are related, their vectors may be
+		close in the embedding space.
+
+
+==================================================
+4. VECTOR SEARCH
+==================================================
+
+		Vector Search finds document chunks that are semantically
+		similar to the query vector.
+
+
+		Flow:
+
+			Query
+			  ↓
+			Query Embedding
+			  ↓
+			Vector Database
+			  ↓
+			Similarity Search
+			  ↓
+			Top-K Results
+
+
+		Example:
+
+			Query:
+
+				"How many sick leaves are allowed?"
+
+
+			Vector Database contains:
+
+				Chunk 1 → Salary Policy
+				Chunk 2 → Sick Leave Policy
+				Chunk 3 → Travel Policy
+				Chunk 4 → Attendance Policy
+				Chunk 5 → Insurance Policy
+
+
+			Vector Search:
+
+				Query
+				  ↓
+				Vector DB
+				  ↓
+				Top-K Similar Chunks
+
+
+			Example Result:
+
+				1. Chunk 2
+				2. Chunk 4
+				3. Chunk 1
+				4. Chunk 5
+				5. Chunk 3
+
+
+		The retrieved chunks become candidate results for the
+		next stage.
+
+
+--------------------------------------------------
+SIMILARITY SEARCH
+--------------------------------------------------
+
+		Common similarity/distance metrics:
+
+			1. Cosine Similarity
+			2. Dot Product
+			3. Euclidean Distance
+
+
+		Cosine Similarity:
+
+			Measures the angle between two vectors.
+
+			Query Vector
+			      ↕
+			Document Vector
+
+
+			Higher cosine similarity generally indicates
+			greater similarity.
+
+
+		Dot Product:
+
+			Calculates the dot product between vectors.
+
+			Depending on the embedding model and normalization,
+			higher scores can represent stronger similarity.
+
+
+		Euclidean Distance:
+
+			Measures the geometric distance between vectors.
+
+			Smaller distance means the vectors are closer.
+
+
+--------------------------------------------------
+TOP-K RETRIEVAL
+--------------------------------------------------
+
+		K represents the number of candidate results retrieved.
+
+
+		Example:
+
+			K = 5
+
+
+			Vector DB retrieves:
+
+				Top 5 chunks
+
+
+		Production example:
+
+			User Query
+			    ↓
+			Vector Search
+			    ↓
+			Retrieve Top 50
+			    ↓
+			Reranking
+			    ↓
+			Select Top 5
+
+
+		Why retrieve more initially?
+
+			The first-stage retriever generally focuses on
+			recall.
+
+			The reranker can then identify the most relevant
+			documents from the candidate set.
+
+
+==================================================
+5. RERANKING
+==================================================
+
+		Reranking means taking the initially retrieved documents
+		and reordering them according to their relevance to the
+		user's query.
+
+
+		Flow:
+
+			Query
+			  ↓
+			Vector Search
+			  ↓
+			Top 50
+			  ↓
+			Reranker
+			  ↓
+			Top 5
+			  ↓
+			Context Selection
+
+
+		Example:
+
+			Query:
+
+				"Why was the insurance claim rejected?"
+
+
+			Initial Retrieval:
+
+				1. Claim Processing
+				2. Claim Rejection
+				3. Claim Submission
+				4. Insurance Policy
+				5. Customer Information
+
+
+			Reranker examines the query and candidate documents
+			more deeply and produces a better ordering.
+
+
+		Common Reranking Approaches:
+
+			Cross-Encoder
+			BGE Reranker
+			Cohere Rerank
+			Jina Reranker
+			LLM-Based Reranking
+
+
+--------------------------------------------------
+BI-ENCODER vs CROSS-ENCODER
+--------------------------------------------------
+
+		BI-ENCODER:
+
+			Query
+			  ↓
+			Query Embedding
+
+			Document
+			  ↓
+			Document Embedding
+
+			Query Vector
+			      ↓
+			Similarity Search
+			      ↓
+			Candidate Documents
+
+
+			Advantages:
+
+				- Fast
+				- Scalable
+				- Suitable for first-stage retrieval
+				- Works efficiently with large vector databases
+
+
+		CROSS-ENCODER:
+
+			Query + Document
+			      ↓
+			Cross-Encoder
+			      ↓
+			Relevance Score
+
+
+			The Cross-Encoder directly evaluates the relationship
+			between the query and document.
+
+
+			Advantages:
+
+				- More detailed query-document interaction
+				- Often better ranking quality
+				- Suitable for reranking a smaller candidate set
+
+
+		Typical Architecture:
+
+			Query
+			  ↓
+			Bi-Encoder
+			  ↓
+			Vector Search
+			  ↓
+			Top 50
+			  ↓
+			Cross-Encoder
+			  ↓
+			Top 5
+
+
+==================================================
+6. CONTEXT SELECTION
+==================================================
+
+		Context Selection decides which retrieved chunks should
+		actually be sent to the LLM.
+
+
+		Example:
+
+			Vector Search
+			     ↓
+			 50 Chunks
+			     ↓
+			  Reranking
+			     ↓
+			 10 Chunks
+			     ↓
+		       Context Selection
+			     ↓
+			  5 Best Chunks
+			     ↓
+			   LLM
+
+
+		Context Selection considers:
+
+			1. Relevance
+			2. Token Budget
+			3. Diversity
+			4. Duplicate Information
+			5. Document Importance
+			6. Metadata
+			7. Query Requirements
+
+
+		Goal:
+
+			Maximum useful information
+			          +
+			Minimum unnecessary information
+
+
+--------------------------------------------------
+CONTEXT WINDOW
+--------------------------------------------------
+
+		An LLM has a finite context capacity.
+
+		Sending too much irrelevant information can cause:
+
+			- Higher token usage
+			- Higher cost
+			- Higher latency
+			- More noise
+			- Lower answer quality
+
+
+		Example:
+
+			Bad:
+
+				50 Retrieved Chunks
+				      ↓
+				     LLM
+
+
+			Better:
+
+				50 Retrieved Chunks
+				      ↓
+				   Reranker
+				      ↓
+				  Top 5 Chunks
+				      ↓
+				     LLM
+
+
+		The objective is to provide the LLM with high-quality,
+		relevant context.
+
+
+--------------------------------------------------
+MMR - MAXIMUM MARGINAL RELEVANCE
+--------------------------------------------------
+
+		MMR can be used to improve diversity in retrieved results.
+
+		MMR tries to select documents that are:
+
+			Relevant to the query
+			          +
+			Different from already selected documents
+
+
+		Without Diversity:
+
+			Chunk 1 → Same information
+			Chunk 2 → Same information
+			Chunk 3 → Same information
+			Chunk 4 → Same information
+
+
+		With Diversity:
+
+			Chunk 1 → Policy
+			Chunk 2 → Exception
+			Chunk 3 → Procedure
+			Chunk 4 → Eligibility
+
+
+		This can provide broader useful context.
+
+
+--------------------------------------------------
+CONTEXT COMPRESSION
+--------------------------------------------------
+
+		Context Compression removes unnecessary information from
+		retrieved content before sending it to the LLM.
+
+
+		Example:
+
+			Retrieved Chunk
+			      ↓
+			  1000 Tokens
+			      ↓
+			 Compression
+			      ↓
+			   300 Tokens
+			      ↓
+			      LLM
+
+
+		Benefits:
+
+			- Less noise
+			- Lower token usage
+			- Lower cost
+			- Better focus
+
+
+==================================================
+7. PROMPT CONSTRUCTION
+==================================================
+
+		Prompt Construction combines the information required
+		by the LLM.
+
+
+		A RAG prompt usually contains:
+
+			1. System Instructions
+			2. Retrieved Context
+			3. User Question
+			4. Output Instructions
+
+
+		Example:
+
+			SYSTEM:
+
+				You are an enterprise document assistant.
+
+				Answer using only the provided context.
+
+				If the answer is not available in the context,
+				say that the information was not found.
+
+
+			CONTEXT:
+
+				Employees are eligible for 12 sick leaves per year.
+
+				Sick leave requests must be submitted through
+				the HR portal.
+
+
+			QUESTION:
+
+				How many sick leaves can an employee take?
+
+
+			OUTPUT INSTRUCTION:
+
+				Give a concise answer and mention the source
+				page when available.
+
+
+		This complete structure becomes the prompt sent to the LLM.
+
+
+--------------------------------------------------
+GROUNDING
+--------------------------------------------------
+
+		Grounding means generating an answer based on retrieved
+		evidence.
+
+
+		Without RAG:
+
+			User
+			  ↓
+			LLM
+			  ↓
+			Answer
+
+
+		With RAG:
+
+			User
+			  ↓
+			Retrieval
+			  ↓
+			Evidence
+			  ↓
+			LLM
+			  ↓
+			Grounded Answer
+
+
+		Example:
+
+			Context:
+
+				"Employees are eligible for 12 sick leaves
+				 per year."
+
+
+			Question:
+
+				"How many sick leaves can an employee take?"
+
+
+			Grounded Answer:
+
+				"Employees are eligible for 12 sick leaves
+				 per year."
+
+
+		Important:
+
+			RAG can improve grounding, but it does NOT guarantee
+			zero hallucinations.
+
+			Hallucinations can still happen because of:
+
+				- Incorrect retrieval
+				- Missing information
+				- Poor context
+				- Incorrect prompt
+				- LLM generation errors
+
+
+==================================================
+8. LLM RESPONSE GENERATION
+==================================================
+
+		The LLM receives:
+
+			System Instructions
+			          +
+			Retrieved Context
+			          +
+			User Question
+
+
+		Then generates the final response.
+
+
+		Flow:
+
+			Prompt
+			  ↓
+			LLM
+			  ↓
+			Generated Response
+			  ↓
+			Final Answer
+
+
+		Example:
+
+			Context:
+
+				"Employees are eligible for 12 sick leaves
+				 per year."
+
+
+			Question:
+
+				"How many sick leaves can an employee take?"
+
+
+			LLM Response:
+
+				"Employees are eligible for 12 sick leaves
+				 per year."
+
+
+		The LLM performs the generation.
+
+		The Retriever performs the information retrieval.
+
+
+==================================================
+COMPLETE RAG QUERY PIPELINE
+==================================================
+
+			User Query
+			      ↓
+			Query Processing
+			      ↓
+			+---------------------------+
+			|                           |
+			|  Query Rewrite            |
+			|  Query Expansion          |
+			|  Query Transformation     |
+			|                           |
+			+---------------------------+
+			      ↓
+			Embedding Generation
+			      ↓
+			Query Vector
+			      ↓
+			Vector Search
+			      ↓
+			Top-K Results
+			      ↓
+			Reranking
+			      ↓
+			Context Selection
+			      ↓
+			Context Compression
+			      ↓
+			Prompt Construction
+			      ↓
+			LLM
+			      ↓
+			Final Response
+
+
+==================================================
+FULL RAG SYSTEM
+==================================================
+
+		DOCUMENT PROCESSING SIDE:
+
+			Documents
+			    ↓
+			Document Loading
+			    ↓
+			Text Extraction / OCR
+			    ↓
+			Cleaning
+			    ↓
+			Chunking
+			    ↓
+			Metadata
+			    ↓
+			Embeddings
+			    ↓
+			Vector Database
+
+
+		QUERY SIDE:
+
+			User Query
+			    ↓
+			Query Processing
+			    ↓
+			Query Embedding
+			    ↓
+			Vector Search
+			    ↓
+			Reranking
+			    ↓
+			Context Selection
+			    ↓
+			Prompt Construction
+			    ↓
+			LLM
+			    ↓
+			Final Answer
+
+
+==================================================
+END-TO-END EXAMPLE
+==================================================
+
+		DOCUMENT:
+
+			Leave_Policy.pdf
+
+
+		DOCUMENT CONTENT:
+
+			"Employees are eligible for 12 sick leaves per year.
+			 Sick leave requests must be submitted through
+			 the HR portal."
+
+
+		USER QUERY:
+
+			"How many sick leaves can I take?"
+
+
+		STEP 1 - INPUT QUERY:
+
+			"How many sick leaves can I take?"
+
+
+		STEP 2 - QUERY REWRITE:
+
+			"How many sick leave days are employees entitled to?"
+
+
+		STEP 3 - QUERY EXPANSION:
+
+			sick leave
+			medical leave
+			illness leave
+			employee leave entitlement
+
+
+		STEP 4 - QUERY TRANSFORMATION:
+
+			Query 1:
+				"How many sick leave days are employees entitled to?"
+
+			Query 2:
+				"What is the company's sick leave entitlement?"
+
+			Query 3:
+				"What is the annual sick leave allowance?"
+
+
+		STEP 5 - EMBEDDING:
+
+			Processed Query
+			      ↓
+			Embedding Model
+			      ↓
+			Query Vector
+
+
+		STEP 6 - VECTOR SEARCH:
+
+			Query Vector
+			      ↓
+			Vector Database
+			      ↓
+			Top 50 Chunks
+
+
+		STEP 7 - RERANKING:
+
+			Top 50
+			   ↓
+			Cross-Encoder
+			   ↓
+			Top 5
+
+
+		STEP 8 - CONTEXT SELECTION:
+
+			Select the most relevant chunks.
+
+			Example:
+
+				"Employees are eligible for 12 sick leaves
+				 per year."
+
+
+		STEP 9 - PROMPT CONSTRUCTION:
+
+			SYSTEM:
+
+				Answer using the provided context.
+
+
+			CONTEXT:
+
+				Employees are eligible for 12 sick leaves
+				per year.
+
+
+			QUESTION:
+
+				How many sick leaves can I take?
+
+
+		STEP 10 - LLM RESPONSE:
+
+			"Employees are eligible for 12 sick leaves
+			 per year."
+
+
+==================================================
+RETRIEVAL VS RERANKING
+==================================================
+
+		RETRIEVAL:
+
+			Purpose:
+
+				Quickly find a candidate set of relevant
+				documents.
+
+			Input:
+
+				Query Vector
+
+			Output:
+
+				Top 50
+
+
+		RERANKING:
+
+			Purpose:
+
+				Improve the ordering of the candidate
+				documents.
+
+			Input:
+
+				Query + Candidate Documents
+
+			Output:
+
+				Top 5
+
+
+		Typical Architecture:
+
+			Query
+			  ↓
+			Embedding
+			  ↓
+			Vector DB
+			  ↓
+			Top 50
+			  ↓
+			Reranker
+			  ↓
+			Top 5
+			  ↓
+			LLM
+
+
+==================================================
+IMPORTANT PARAMETERS
+==================================================
+
+		Top-K Retrieval:
+
+			Example:
+
+				K = 50
+
+
+		Rerank-K:
+
+			Example:
+
+				50 → 10
+
+
+		Final Context:
+
+			Example:
+
+				10 → 5
+
+
+		Context Token Budget:
+
+			Defines how much retrieved information can be
+			passed to the LLM.
+
+
+		Actual values depend on:
+
+			- Document type
+			- Query complexity
+			- Embedding model
+			- Vector database
+			- Reranker
+			- LLM
+			- Context window
+			- Retrieval quality
+
+
+==================================================
+COMMON INTERVIEW QUESTIONS
+==================================================
+
+	Q1. What happens after the user enters a query?
+
+		Answer:
+
+			The query can be processed using rewriting,
+			expansion, or transformation. It is then converted
+			into an embedding and used to retrieve relevant
+			documents. The retrieved candidates can be reranked,
+			the best context selected, and the selected context
+			plus the question is passed to the LLM.
+
+
+	Q2. What is Query Rewrite?
+
+		Answer:
+
+			Query rewriting changes the wording of the original
+			query to make it clearer and more suitable for
+			retrieval while preserving the user's intent.
+
+
+	Q3. What is Query Expansion?
+
+		Answer:
+
+			Query expansion adds related terms, synonyms, or
+			domain-specific concepts to improve retrieval coverage.
+
+
+	Q4. What is Query Transformation?
+
+		Answer:
+
+			Query transformation creates alternative queries or
+			representations from the original query so that
+			multiple retrieval paths can be used.
+
+
+	Q5. Why use reranking after vector search?
+
+		Answer:
+
+			Vector search is efficient for retrieving a candidate
+			set, but vector similarity may not perfectly represent
+			detailed query-document relevance. A reranker examines
+			the candidates more deeply and improves their ordering.
+
+
+	Q6. Why retrieve 50 documents and send only 5 to the LLM?
+
+		Answer:
+
+			The first retrieval stage aims for high recall by
+			creating a larger candidate set. Reranking then selects
+			the most relevant documents. Sending fewer high-quality
+			chunks reduces noise, token usage, latency, and cost.
+
+
+	Q7. What is Context Selection?
+
+		Answer:
+
+			Context selection chooses the most useful retrieved
+			information to send to the LLM while considering
+			relevance, diversity, token budget, and query
+			requirements.
+
+
+	Q8. What is Prompt Construction?
+
+		Answer:
+
+			Prompt construction combines system instructions,
+			retrieved context, the user's question, and
+			application-specific instructions into the input
+			sent to the LLM.
+
+
+	Q9. Does RAG eliminate hallucination?
+
+		Answer:
+
+			No. RAG can improve grounding by supplying relevant
+			evidence, but retrieval errors, missing information,
+			poor context, and generation errors can still cause
+			hallucinations.
+
+
+	Q10. What is the difference between Retrieval and Generation?
+
+		Answer:
+
+			Retrieval finds relevant information from the knowledge
+			base. Generation uses the retrieved information and
+			user query to produce the final natural-language
+			response.
+
+
+==================================================
+QUICK REVISION
+==================================================
+
+		1. INPUT QUERY
+
+			User provides the question.
+
+
+		2. QUERY PROCESSING
+
+			Improve or transform the question.
+
+				Rewrite
+				Expansion
+				Transformation
+
+
+		3. EMBEDDING GENERATION
+
+			Convert the query into a vector.
+
+
+		4. VECTOR SEARCH
+
+			Find semantically similar chunks.
+
+
+		5. RERANKING
+
+			Reorder retrieved candidates based on relevance.
+
+
+		6. CONTEXT SELECTION
+
+			Choose the best information within the token/context
+			budget.
+
+
+		7. PROMPT CONSTRUCTION
+
+			Combine:
+
+				System Instructions
+				      +
+				Retrieved Context
+				      +
+				User Question
+
+
+		8. LLM RESPONSE GENERATION
+
+			Generate the final grounded response.
+
+
+==================================================
+ONE-LINE MEMORY
+==================================================
+
+		Input Query
+		      ↓
+		Query Processing
+		      ↓
+		Embedding
+		      ↓
+		Vector Search
+		      ↓
+		Reranking
+		      ↓
+		Context Selection
+		      ↓
+		Prompt Construction
+		      ↓
+		LLM
+		      ↓
+		Final Answer
+		
+		
+# 4. RAG TYPES
+
+		RAG can be implemented in different architectures depending on
+		the complexity of the application, retrieval requirements,
+		knowledge structure, and level of automation.
+
+		The major RAG types are:
+
+			1. Basic RAG
+			2. Advanced RAG
+			3. Modular RAG
+			4. Hybrid RAG
+			5. Graph RAG
+			6. Agentic RAG
+			7. Self RAG
+			8. Corrective RAG (CRAG)
+
+
+		Basic idea:
+
+			Basic RAG
+			    ↓
+			Simple Retrieval
+			    ↓
+			LLM
+
+
+			Advanced RAG
+			    ↓
+			Query Processing
+			    ↓
+			Retrieval
+			    ↓
+			Reranking
+			    ↓
+			LLM
+
+
+			Hybrid RAG
+			    ↓
+			Dense Search + Sparse Search
+			    ↓
+			Combine Results
+			    ↓
+			Reranking
+			    ↓
+			LLM
+
+
+			Graph RAG
+			    ↓
+			Knowledge Graph
+			    ↓
+			Entity / Relationship Retrieval
+			    ↓
+			LLM
+
+
+			Agentic RAG
+			    ↓
+			Agent
+			    ↓
+			Planning
+			    ↓
+			Multiple Tools / Retrieval
+			    ↓
+			LLM
+
+
+			Self-RAG
+			    ↓
+			Retrieve
+			    ↓
+			Generate
+			    ↓
+			Self-Evaluate
+			    ↓
+			Correct / Retrieve Again
+
+
+			CRAG
+			    ↓
+			Retrieve
+			    ↓
+			Evaluate Retrieval Quality
+			    ↓
+			Correct Retrieval if Necessary
+			    ↓
+			Generate Answer
+
+
+==================================================
+1. BASIC RAG
+==================================================
+
+		Basic RAG is the simplest form of Retrieval-Augmented Generation.
+
+		It uses a straightforward pipeline:
+
+			User Query
+			      ↓
+			Query Embedding
+			      ↓
+			Vector Search
+			      ↓
+			Top-K Documents
+			      ↓
+			   LLM
+			      ↓
+			Answer
+
+
+		Example:
+
+			User:
+
+				"What is the company's leave policy?"
+
+
+			Flow:
+
+				Query
+				  ↓
+				Embedding
+				  ↓
+				ChromaDB
+				  ↓
+				Top 5 Chunks
+				  ↓
+				LLM
+				  ↓
+				Answer
+
+
+		Typical components:
+
+			- Document Loader
+			- Chunking
+			- Embedding Model
+			- Vector Database
+			- Retriever
+			- LLM
+
+
+		Example technology stack:
+
+			PDF
+			  ↓
+			RecursiveCharacterTextSplitter
+			  ↓
+			SentenceTransformer
+			  ↓
+			ChromaDB
+			  ↓
+			Qwen / Llama / GPT
+			  ↓
+			Answer
+
+
+		Advantages:
+
+			- Simple architecture
+			- Easy to implement
+			- Easy to understand
+			- Low complexity
+			- Good for small applications
+			- Good for learning RAG fundamentals
+
+
+		Limitations:
+
+			- Basic retrieval
+			- Limited query understanding
+			- May retrieve irrelevant chunks
+			- No advanced reranking
+			- No self-correction
+			- Limited handling of complex questions
+
+
+		Best use cases:
+
+			- Simple document Q&A
+			- FAQ systems
+			- Small knowledge bases
+			- Prototype applications
+			- Learning RAG
+
+
+		Memory:
+
+			Basic RAG =
+
+				Query
+				  ↓
+				Retrieve
+				  ↓
+				LLM
+				  ↓
+				Answer
+
+
+==================================================
+2. ADVANCED RAG
+==================================================
+
+		Advanced RAG improves the basic RAG pipeline by adding
+		additional retrieval and query-processing techniques.
+
+
+		Typical architecture:
+
+			User Query
+			      ↓
+			Query Processing
+			      ↓
+			Query Rewrite
+			      ↓
+			Query Expansion
+			      ↓
+			Query Embedding
+			      ↓
+			Vector Search
+			      ↓
+			Top-K Retrieval
+			      ↓
+			Reranking
+			      ↓
+			Context Selection
+			      ↓
+			Prompt Construction
+			      ↓
+			   LLM
+			      ↓
+			Answer
+
+
+		Advanced RAG may include:
+
+			- Query rewriting
+			- Query expansion
+			- Query transformation
+			- Metadata filtering
+			- Hybrid retrieval
+			- Reranking
+			- MMR
+			- Context compression
+			- Query routing
+			- Retrieval evaluation
+
+
+		Example:
+
+			User Query
+			      ↓
+			Query Rewrite
+			      ↓
+			Hybrid Retrieval
+			      ↓
+			Top 50
+			      ↓
+			Cross-Encoder Reranker
+			      ↓
+			Top 5
+			      ↓
+			Context Compression
+			      ↓
+			LLM
+			      ↓
+			Answer
+
+
+		Advantages:
+
+			- Better retrieval quality
+			- Better precision
+			- Better recall
+			- Handles complex queries
+			- Better context selection
+			- Better production performance
+
+
+		Limitations:
+
+			- More complex
+			- Higher latency
+			- Higher infrastructure requirements
+			- More components to monitor
+			- More tuning required
+
+
+		Best use cases:
+
+			- Enterprise RAG
+			- Financial documents
+			- Legal documents
+			- Technical documentation
+			- Large knowledge bases
+			- Production applications
+
+
+		Memory:
+
+			Advanced RAG =
+
+				Query
+				  ↓
+				Process
+				  ↓
+				Retrieve
+				  ↓
+				Rerank
+				  ↓
+				Select
+				  ↓
+				LLM
+
+
+==================================================
+3. MODULAR RAG
+==================================================
+
+		Modular RAG organizes the RAG system into independent modules.
+
+		Instead of building one fixed pipeline, individual components
+		can be replaced, improved, or combined.
+
+
+		Example modules:
+
+			+---------------------+
+			| Query Module       |
+			+---------------------+
+
+			+---------------------+
+			| Retrieval Module   |
+			+---------------------+
+
+			+---------------------+
+			| Reranking Module   |
+			+---------------------+
+
+			+---------------------+
+			| Context Module     |
+			+---------------------+
+
+			+---------------------+
+			| Generation Module  |
+			+---------------------+
+
+
+		Example:
+
+			Query Module
+			      ↓
+			Retrieval Module
+			      ↓
+			Reranking Module
+			      ↓
+			Context Module
+			      ↓
+			Generation Module
+
+
+		Each module can be changed independently.
+
+
+		Example:
+
+			Embedding Module:
+
+				SentenceTransformer
+
+
+			can later be replaced with:
+
+				BGE Embedding
+
+
+			without redesigning the entire RAG system.
+
+
+		Another example:
+
+			Vector Database:
+
+				ChromaDB
+
+
+			can be replaced with:
+
+				Qdrant
+				Pinecone
+				Weaviate
+				Milvus
+
+
+		Advantages:
+
+			- Flexible architecture
+			- Easy maintenance
+			- Easy testing
+			- Easy replacement of components
+			- Supports experimentation
+			- Good for production systems
+
+
+		Best use cases:
+
+			- Large enterprise applications
+			- Production RAG platforms
+			- Systems requiring multiple retrieval strategies
+			- Applications with frequently changing components
+
+
+		Memory:
+
+			Modular RAG =
+
+				Independent RAG Components
+				       ↓
+				Can be replaced or combined
+
+
+==================================================
+4. HYBRID RAG
+==================================================
+
+		Hybrid RAG combines multiple retrieval strategies.
+
+		The most common combination is:
+
+			Dense Retrieval
+			      +
+			Sparse Retrieval
+
+
+		Dense Retrieval uses embeddings.
+
+		Sparse Retrieval uses keyword-based methods such as BM25.
+
+
+		Architecture:
+
+			User Query
+			      ↓
+			  +---+---+
+			  |       |
+			  ↓       ↓
+			Dense   Sparse
+			Search   Search
+			  ↓       ↓
+			Vector    BM25
+			DB
+			  ↓       ↓
+			  +---+---+
+			      ↓
+			Combine Results
+			      ↓
+			Reranking
+			      ↓
+			Context
+			      ↓
+			LLM
+			      ↓
+			Answer
+
+
+		Example:
+
+			User Query:
+
+				"Claim number CLM-2026-00123"
+
+
+			Dense search may understand semantic meaning.
+
+			Sparse search can strongly match the exact claim number.
+
+
+		Hybrid search is useful because:
+
+			Dense Search:
+
+				Good for semantic meaning.
+
+
+			Sparse Search:
+
+				Good for exact keywords,
+				names, IDs, numbers, codes, etc.
+
+
+		Advantages:
+
+			- Better retrieval coverage
+			- Handles semantic queries
+			- Handles exact keyword queries
+			- Useful for enterprise documents
+			- Strong for technical and financial data
+
+
+		Best use cases:
+
+			- Financial documents
+			- Insurance claims
+			- Legal documents
+			- Product catalogs
+			- Technical documentation
+			- Enterprise search
+
+
+		Memory:
+
+			Hybrid RAG =
+
+				Dense Search
+				     +
+				Sparse Search
+				     ↓
+				Combined Results
+				     ↓
+				Reranking
+				     ↓
+				LLM
+
+
+==================================================
+5. GRAPH RAG
+==================================================
+
+		Graph RAG uses a knowledge graph to represent relationships
+		between entities and concepts.
+
+		Traditional RAG:
+
+			Query
+			  ↓
+			Vector Search
+			  ↓
+			Relevant Chunks
+
+
+		Graph RAG:
+
+			Query
+			  ↓
+			Entity Identification
+			  ↓
+			Knowledge Graph
+			  ↓
+			Entity + Relationship Retrieval
+			  ↓
+			Context
+			  ↓
+			LLM
+
+
+		Example knowledge graph:
+
+			Employee
+			   |
+			   | works_for
+			   ↓
+			Company
+			   |
+			   | has_policy
+			   ↓
+			Leave Policy
+			   |
+			   | allows
+			   ↓
+			12 Sick Leaves
+
+
+		Another example:
+
+			Customer
+			    |
+			    | owns
+			    ↓
+			Policy
+			    |
+			    | contains
+			    ↓
+			Claim
+			    |
+			    | rejected_due_to
+			    ↓
+			Policy Violation
+
+
+		Graph RAG is useful when relationships between entities
+		are important.
+
+
+		Example question:
+
+			"Which customers have claims associated with policies
+			 that expired before the claim date?"
+
+
+		This requires relationships between:
+
+			Customer
+			Claim
+			Policy
+			Policy Date
+			Claim Date
+
+
+		A knowledge graph can represent these relationships.
+
+
+		Typical architecture:
+
+			Documents
+			      ↓
+			Entity Extraction
+			      ↓
+			Relationship Extraction
+			      ↓
+			Knowledge Graph
+			      ↓
+			Graph Retrieval
+			      ↓
+			Context
+			      ↓
+			LLM
+
+
+		Advantages:
+
+			- Excellent for relationship-based questions
+			- Good for multi-hop reasoning
+			- Represents entities and relationships explicitly
+			- Useful for complex enterprise knowledge
+
+
+		Best use cases:
+
+			- Knowledge management
+			- Financial analysis
+			- Research
+			- Complex enterprise relationships
+			- Multi-hop questions
+
+
+		Memory:
+
+			Graph RAG =
+
+				Entities
+				    +
+				Relationships
+				    ↓
+				Knowledge Graph
+				    ↓
+				Retrieve Relationships
+				    ↓
+				LLM
+
+
+==================================================
+6. AGENTIC RAG
+==================================================
+
+		Agentic RAG uses an AI agent to decide:
+
+			- What information to retrieve
+			- Which tool to use
+			- Whether another search is required
+			- Whether the retrieved information is sufficient
+			- What action should happen next
+
+
+		Traditional RAG:
+
+			Query
+			  ↓
+			Retrieve
+			  ↓
+			LLM
+			  ↓
+			Answer
+
+
+		Agentic RAG:
+
+			User Query
+			      ↓
+			    Agent
+			      ↓
+			Planning / Reasoning
+			      ↓
+			Choose Tool
+			      ↓
+			Retrieve / Search / API
+			      ↓
+			Analyze Result
+			      ↓
+			Need More Information?
+			      ↓
+			     YES
+			      |
+			      └───────────────→ Search Again
+			      ↓
+			     NO
+			      ↓
+			    Answer
+
+
+		Example:
+
+			User:
+
+				"Compare the 2025 and 2026 insurance claim
+				 rejection policies and tell me what changed."
+
+
+		Agent may decide:
+
+			Step 1:
+
+				Search 2025 policy.
+
+
+			Step 2:
+
+				Search 2026 policy.
+
+
+			Step 3:
+
+				Compare both documents.
+
+
+			Step 4:
+
+				Identify changes.
+
+
+			Step 5:
+
+				Generate final answer.
+
+
+		Agentic RAG can use tools such as:
+
+			- Vector Database
+			- Web Search
+			- SQL Database
+			- APIs
+			- Calculator
+			- Knowledge Graph
+			- Document Search
+			- Enterprise Applications
+
+
+		Advantages:
+
+			- Handles complex tasks
+			- Multi-step retrieval
+			- Dynamic tool selection
+			- Can perform multiple searches
+			- Can combine different data sources
+
+
+		Limitations:
+
+			- More complex
+			- Higher latency
+			- More expensive
+			- Agent decisions can fail
+			- Requires stronger monitoring and evaluation
+
+
+		Best use cases:
+
+			- Complex research
+			- Enterprise assistants
+			- Multi-document analysis
+			- Multi-source question answering
+			- Data analysis agents
+
+
+		Memory:
+
+			Agentic RAG =
+
+				Query
+				  ↓
+				Agent
+				  ↓
+				Plan
+				  ↓
+				Choose Tool
+				  ↓
+				Retrieve
+				  ↓
+				Evaluate
+				  ↓
+				Retrieve Again if Needed
+				  ↓
+				Answer
+
+
+==================================================
+7. SELF-RAG
+==================================================
+
+		Self-RAG adds self-reflection and self-evaluation to the
+		RAG process.
+
+		The system evaluates whether it should retrieve information,
+		whether the retrieved information is useful, and whether the
+		generated answer is supported.
+
+
+		Traditional RAG:
+
+			Query
+			  ↓
+			Retrieve
+			  ↓
+			Generate
+			  ↓
+			Answer
+
+
+		Self-RAG:
+
+			Query
+			  ↓
+			Decide Whether to Retrieve
+			  ↓
+			Retrieve
+			  ↓
+			Generate
+			  ↓
+			Self-Evaluate
+			  ↓
+			Is Answer Supported?
+			  ↓
+			YES → Final Answer
+			  ↓
+			NO → Retrieve / Correct / Regenerate
+
+
+		Example:
+
+			User:
+
+				"What is the latest policy for claim approval?"
+
+
+			Self-RAG may:
+
+				1. Decide retrieval is required.
+				2. Retrieve policy documents.
+				3. Generate an answer.
+				4. Check whether the answer is supported.
+				5. If unsupported, retrieve better information.
+				6. Regenerate the answer.
+
+
+		Self-RAG focuses on:
+
+			- Retrieval decisions
+			- Relevance
+			- Support
+			- Quality of generated answers
+
+
+		Advantages:
+
+			- Better answer quality
+			- Better grounding
+			- Can identify unsupported answers
+			- Can perform additional retrieval when needed
+
+
+		Limitations:
+
+			- More computationally expensive
+			- More complex
+			- Requires evaluation logic
+			- Can increase latency
+
+
+		Best use cases:
+
+			- High-quality Q&A
+			- Research systems
+			- Enterprise knowledge systems
+			- Applications where answer correctness is important
+
+
+		Memory:
+
+			Self-RAG =
+
+				Retrieve
+				   ↓
+				Generate
+				   ↓
+				Self-Check
+				   ↓
+				Correct if Necessary
+
+
+==================================================
+8. CORRECTIVE RAG (CRAG)
+==================================================
+
+		CRAG stands for Corrective Retrieval-Augmented Generation.
+
+		CRAG adds a retrieval evaluation and correction step.
+
+		The system checks the quality of retrieved documents before
+		generating the final answer.
+
+
+		Basic RAG:
+
+			Query
+			  ↓
+			Retrieve
+			  ↓
+			LLM
+			  ↓
+			Answer
+
+
+		CRAG:
+
+			Query
+			  ↓
+			Retrieve
+			  ↓
+			Evaluate Retrieval Quality
+			  ↓
+			+-----------------------+
+			|                       |
+			| Relevant?             |
+			|                       |
+			+----------+------------+
+			           |
+		       +-------+-------+
+		       |               |
+		      YES              NO
+		       |               |
+		       ↓               ↓
+		    Use Results    Correct Retrieval
+		       |               |
+		       |       +-------+-------+
+		       |       |               |
+		       |       ↓               ↓
+		       |    Reformulate     External
+		       |      Query          Search
+		       |       |               |
+		       |       +-------+-------+
+		       |               |
+		       +-------+-------+
+			       ↓
+			    Context
+			       ↓
+			      LLM
+			       ↓
+			    Answer
+
+
+		Example:
+
+			User:
+
+				"What are the latest regulations for
+				 insurance claims?"
+
+
+			Step 1:
+
+				Retrieve internal documents.
+
+
+			Step 2:
+
+				Evaluate retrieved information.
+
+
+			Step 3:
+
+				If the results are poor or outdated:
+
+					- Reformulate the query
+					- Retrieve again
+					- Use another knowledge source
+					- Potentially perform web search
+
+
+			Step 4:
+
+				Use corrected context.
+
+
+			Step 5:
+
+				Generate final answer.
+
+
+		Advantages:
+
+			- Detects poor retrieval
+			- Can correct retrieval failures
+			- Improves robustness
+			- Useful when retrieval quality varies
+
+
+		Limitations:
+
+			- More complex than basic RAG
+			- Additional processing
+			- Higher latency
+			- Requires retrieval evaluation
+
+
+		Best use cases:
+
+			- Enterprise search
+			- Dynamic knowledge
+			- High-quality document Q&A
+			- Systems where retrieval failures are common
+
+
+		Memory:
+
+			CRAG =
+
+				Retrieve
+				   ↓
+				Evaluate
+				   ↓
+				Good?
+				↙   ↘
+			  YES    NO
+			   ↓      ↓
+			 Use    Correct
+			   \      /
+			    \    /
+			     ↓  ↓
+			    LLM
+			     ↓
+			   Answer
+
+
+==================================================
+RAG TYPES COMPARISON
+==================================================
+
+		1. BASIC RAG
+
+			Focus:
+
+				Simple retrieval + generation.
+
+			Flow:
+
+				Query
+				  ↓
+				Vector Search
+				  ↓
+				LLM
+
+
+		2. ADVANCED RAG
+
+			Focus:
+
+				Improve retrieval quality.
+
+			Flow:
+
+				Query
+				  ↓
+				Query Processing
+				  ↓
+				Retrieval
+				  ↓
+				Reranking
+				  ↓
+				LLM
+
+
+		3. MODULAR RAG
+
+			Focus:
+
+				Independent and replaceable components.
+
+			Flow:
+
+				Query Module
+				     ↓
+				Retrieval Module
+				     ↓
+				Reranking Module
+				     ↓
+				Generation Module
+
+
+		4. HYBRID RAG
+
+			Focus:
+
+				Multiple retrieval methods.
+
+			Flow:
+
+				Dense Search
+				     +
+				Sparse Search
+				     ↓
+				Combined Results
+				     ↓
+				Reranking
+
+
+		5. GRAPH RAG
+
+			Focus:
+
+				Entities and relationships.
+
+			Flow:
+
+				Query
+				  ↓
+				Knowledge Graph
+				  ↓
+				Relationships
+				  ↓
+				Context
+				  ↓
+				LLM
+
+
+		6. AGENTIC RAG
+
+			Focus:
+
+				Agent-driven multi-step retrieval and tool use.
+
+			Flow:
+
+				Query
+				  ↓
+				Agent
+				  ↓
+				Plan
+				  ↓
+				Tools / Retrieval
+				  ↓
+				Answer
+
+
+		7. SELF-RAG
+
+			Focus:
+
+				Self-reflection and answer evaluation.
+
+			Flow:
+
+				Retrieve
+				  ↓
+				Generate
+				  ↓
+				Self-Check
+				  ↓
+				Correct if Needed
+
+
+		8. CRAG
+
+			Focus:
+
+				Evaluate and correct poor retrieval.
+
+			Flow:
+
+				Retrieve
+				  ↓
+				Evaluate
+				  ↓
+				Correct if Needed
+				  ↓
+				LLM
+
+
+==================================================
+RAG TYPES - EASY MEMORY
+==================================================
+
+		BASIC RAG
+
+			Simple Retrieval
+
+
+		ADVANCED RAG
+
+			Better Retrieval
+
+
+		MODULAR RAG
+
+			Replaceable Components
+
+
+		HYBRID RAG
+
+			Dense + Sparse Retrieval
+
+
+		GRAPH RAG
+
+			Entities + Relationships
+
+
+		AGENTIC RAG
+
+			Agent + Tools + Multi-Step Retrieval
+
+
+		SELF-RAG
+
+			Retrieve + Generate + Self-Check
+
+
+		CRAG
+
+			Retrieve + Evaluate + Correct
+
+
+==================================================
+RAG EVOLUTION
+==================================================
+
+		Basic RAG
+		    ↓
+		Advanced RAG
+		    ↓
+		Modular RAG
+		    ↓
+		Hybrid RAG
+		    ↓
+		Graph RAG
+		    ↓
+		Agentic RAG
+		    ↓
+		Self-RAG
+		    ↓
+		Corrective RAG
+
+
+		Important:
+
+			These are not always mutually exclusive architectures.
+
+			A production system can combine multiple approaches.
+
+
+		Example:
+
+			Enterprise RAG
+
+			    Query
+			      ↓
+			    Agent
+			      ↓
+			Query Transformation
+			      ↓
+			Hybrid Retrieval
+			      ↓
+			Reranking
+			      ↓
+			Graph Retrieval
+			      ↓
+			Self-Evaluation
+			      ↓
+			Corrective Retrieval
+			      ↓
+			    LLM
+			      ↓
+			   Answer
+
+
+==================================================
+REAL-WORLD FINANCIAL DOCUMENT EXAMPLE
+==================================================
+
+		For a financial document application:
+
+			BOL
+			Invoice
+			Claim
+			POD
+			Financial Reports
+
+
+		A production architecture could be:
+
+			Documents
+			      ↓
+			OCR / Extraction
+			      ↓
+			Chunking
+			      ↓
+			Embeddings
+			      ↓
+			Vector Database
+			      ↓
+			Hybrid Retrieval
+			      ↓
+			Reranking
+			      ↓
+			Context Selection
+			      ↓
+			LLM
+
+
+		For more complex questions:
+
+			User Query
+			      ↓
+			Agent
+			      ↓
+			Decide Required Sources
+			      ↓
+			Vector DB
+			      +
+			SQL Database
+			      +
+			Knowledge Graph
+			      ↓
+			Combine Results
+			      ↓
+			Self-Check
+			      ↓
+			Correct if Necessary
+			      ↓
+			LLM
+			      ↓
+			Final Answer
+
+
+==================================================
+INTERVIEW QUESTIONS
+==================================================
+
+	Q1. What is Basic RAG?
+
+		Answer:
+
+			Basic RAG retrieves relevant documents using a simple
+			retrieval mechanism and provides them to an LLM for
+			answer generation.
+
+
+	Q2. What is Advanced RAG?
+
+		Answer:
+
+			Advanced RAG improves the basic pipeline using
+			techniques such as query rewriting, hybrid retrieval,
+			metadata filtering, reranking, MMR, and context
+			compression.
+
+
+	Q3. What is Modular RAG?
+
+		Answer:
+
+			Modular RAG organizes the system into independent
+			modules that can be replaced, optimized, or combined
+			independently.
+
+
+	Q4. What is Hybrid RAG?
+
+		Answer:
+
+			Hybrid RAG combines multiple retrieval methods,
+			commonly dense vector retrieval and sparse keyword
+			retrieval such as BM25.
+
+
+	Q5. What is Graph RAG?
+
+		Answer:
+
+			Graph RAG uses entities and relationships represented
+			in a knowledge graph to retrieve structured context,
+			especially for relationship-heavy and multi-hop
+			questions.
+
+
+	Q6. What is Agentic RAG?
+
+		Answer:
+
+			Agentic RAG uses an AI agent to plan retrieval,
+			select tools, perform multiple searches, evaluate
+			results, and determine the next action dynamically.
+
+
+	Q7. What is Self-RAG?
+
+		Answer:
+
+			Self-RAG adds self-reflection to the retrieval and
+			generation process. The system evaluates whether
+			retrieval is needed and whether the generated answer
+			is sufficiently supported.
+
+
+	Q8. What is CRAG?
+
+		Answer:
+
+			Corrective RAG evaluates the quality of retrieved
+			information and performs corrective retrieval or
+			query reformulation when the initial retrieval is
+			poor.
+
+
+	Q9. Can these RAG types be combined?
+
+		Answer:
+
+			Yes. These approaches are not necessarily mutually
+			exclusive. A production system can combine hybrid
+			retrieval, reranking, graph retrieval, agents,
+			self-evaluation, and corrective retrieval.
+
+
+==================================================
+QUICK REVISION
+==================================================
+
+		1. BASIC RAG
+
+			Query
+			  ↓
+			Retrieve
+			  ↓
+			LLM
+
+
+		2. ADVANCED RAG
+
+			Query
+			  ↓
+			Process
+			  ↓
+			Retrieve
+			  ↓
+			Rerank
+			  ↓
+			LLM
+
+
+		3. MODULAR RAG
+
+			Independent RAG Modules
+			      ↓
+			Combine / Replace / Optimize
+
+
+		4. HYBRID RAG
+
+			Dense Search
+			      +
+			Sparse Search
+			      ↓
+			Combined Retrieval
+
+
+		5. GRAPH RAG
+
+			Entities
+			      +
+			Relationships
+			      ↓
+			Knowledge Graph
+			      ↓
+			LLM
+
+
+		6. AGENTIC RAG
+
+			Query
+			  ↓
+			Agent
+			  ↓
+			Plan
+			  ↓
+			Tools
+			  ↓
+			Retrieve
+			  ↓
+			Answer
+
+
+		7. SELF-RAG
+
+			Retrieve
+			  ↓
+			Generate
+			  ↓
+			Self-Check
+			  ↓
+			Correct
+
+
+		8. CRAG
+
+			Retrieve
+			  ↓
+			Evaluate Retrieval
+			  ↓
+			Correct Retrieval
+			  ↓
+			Generate
+
+
+==================================================
+ONE-LINE MEMORY
+==================================================
+
+		Basic RAG
+		    ↓
+		Simple Retrieval
+
+
+		Advanced RAG
+		    ↓
+		Improved Retrieval
+
+
+		Modular RAG
+		    ↓
+		Independent Modules
+
+
+		Hybrid RAG
+		    ↓
+		Dense + Sparse
+
+
+		Graph RAG
+		    ↓
+		Entities + Relationships
+
+
+		Agentic RAG
+		    ↓
+		Agent + Tools + Planning
+
+
+		Self-RAG
+		    ↓
+		Self-Reflection
+
+
+		CRAG
+		    ↓
+		Retrieval Correction
+
